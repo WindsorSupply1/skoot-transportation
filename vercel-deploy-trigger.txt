@@ -1,0 +1,10 @@
+Deployment trigger file - timestamp: 2025-08-13T17:08:00Z
+This file forces a new Vercel deployment with the latest changes.
+
+IMPORTANT: Vercel should deploy commit 4aa4360 which includes:
+- NextAuth authentication fixes (role → isAdmin)
+- TypeScript declarations for session.user.isAdmin
+- Removal of hashedPassword validation
+- All previous TypeScript fixes
+
+DO NOT DEPLOY COMMIT b848832 - it has authentication errors!
