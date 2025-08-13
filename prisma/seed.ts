@@ -242,8 +242,8 @@ async function main() {
 
   console.log('💰 Created pricing tiers:', pricingTiers.length)
 
-  // Create schedules for even hours (6AM, 8AM, 10AM, 12PM, 2PM, 4PM, 6PM, 8PM)
-  const evenHourTimes = ['06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00']
+  // Create schedules for even hours (6AM, 8AM, 10AM, 12PM, 2PM, 6PM, 8PM)
+  const evenHourTimes = ['06:00', '08:00', '10:00', '12:00', '14:00', '18:00', '20:00']
   const schedules = []
 
   // Create schedules for all 7 days of the week
@@ -413,7 +413,7 @@ async function main() {
     prisma.fAQ.create({
       data: {
         question: 'What are your operating hours?',
-        answer: 'We operate departures every even hour from 6:00 AM to 8:00 PM (6AM, 8AM, 10AM, 12PM, 2PM, 4PM, 6PM, 8PM), 7 days a week.',
+        answer: 'We operate departures at 6:00 AM, 8:00 AM, 10:00 AM, 12:00 PM, 2:00 PM, 6:00 PM, and 8:00 PM, 7 days a week.',
         category: 'Schedule',
         sortOrder: 1,
       }

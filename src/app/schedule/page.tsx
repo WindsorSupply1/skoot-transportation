@@ -211,7 +211,7 @@ export default function SchedulePage() {
               <div className="space-y-3">
                 {[
                   '6:00 AM', '8:00 AM', '10:00 AM', '12:00 PM',
-                  '2:00 PM', '4:00 PM', '6:00 PM', '8:00 PM'
+                  '2:00 PM', '6:00 PM', '8:00 PM'
                 ].map((time, index) => (
                   <div key={time} className="flex items-center justify-between py-2">
                     <span className="font-medium text-gray-900">{time}</span>
