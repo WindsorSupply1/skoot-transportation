@@ -500,7 +500,7 @@ async function main() {
       data: {
         name: 'booking_confirmation',
         subject: 'Booking Confirmation - Skoot Transportation',
-        htmlBody: '<h2>Booking Confirmed!</h2><p>Thank you for choosing Skoot Transportation. Your booking has been confirmed.</p><h3>Booking Details:</h3><ul><li><strong>Booking Number:</strong> {{bookingNumber}}</li><li><strong>Date:</strong> {{departureDate}}</li><li><strong>Time:</strong> {{departureTime}}</li><li><strong>Pickup:</strong> {{pickupLocation}}</li><li><strong>Destination:</strong> {{destination}}</li><li><strong>Passengers:</strong> {{passengerCount}}</li><li><strong>Total Amount:</strong> ${{totalAmount}}</li></ul><p>Please arrive 15 minutes before your scheduled departure time.</p><p>Safe travels!</p>',
+        htmlBody: '<h2>Booking Confirmed!</h2><p>Thank you for choosing Skoot Transportation. Your booking has been confirmed.</p><h3>Booking Details:</h3><ul><li><strong>Booking Number:</strong> {{bookingNumber}}</li><li><strong>Date:</strong> {{departureDate}}</li><li><strong>Time:</strong> {{departureTime}}</li><li><strong>Pickup:</strong> {{pickupLocation}}</li><li><strong>Destination:</strong> {{destination}}</li><li><strong>Passengers:</strong> {{passengerCount}}</li><li><strong>Total Amount:</strong> ${{amount}}</li></ul><p>Please arrive 15 minutes before your scheduled departure time.</p><p>Safe travels!</p>',
         textBody: 'Booking Confirmed! Booking Number: {{bookingNumber}}. Date: {{departureDate}} at {{departureTime}}. Please arrive 15 minutes early.',
       }
     }),
