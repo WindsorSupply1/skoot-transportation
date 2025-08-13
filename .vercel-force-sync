@@ -1,10 +1,10 @@
-# Force Vercel Sync - Timestamp: 2025-08-13T10:33:00Z
+# Force Vercel Sync - Timestamp: 2025-08-13T16:45:00Z
 # This file forces Vercel to use the latest commit
-# Latest commit should be: 1d2c150 - Fix TypeScript error in seed.ts email template
+# Latest commit should be: ea2620c - Fix NextAuth configuration and admin authentication
 # Previous commits include:
+# - 281e730: Force Vercel redeploy with latest TypeScript fixes
+# - 1d2c150: Fix TypeScript error in seed.ts email template
 # - b848832: Remove 4pm shuttle from all schedules
-# - fe5edc6: Fix Prisma TypeScript error in seed file  
-# - 9620fd0: Add missing Tailwind CSS plugins for build
 
 All fixes applied:
 ✅ Form dependencies (react-hook-form, zod)
@@ -12,3 +12,5 @@ All fixes applied:
 ✅ Prisma TypeScript errors (faq → fAQ)
 ✅ Schedule updates (removed 4pm shuttle)
 ✅ Email template TypeScript fix (totalAmount → amount)
+✅ NextAuth authentication fix (role → isAdmin)
+✅ NextAuth TypeScript declarations
