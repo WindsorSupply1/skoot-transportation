@@ -500,22 +500,7 @@ async function main() {
       data: {
         name: 'booking_confirmation',
         subject: 'Booking Confirmation - Skoot Transportation',
-        htmlBody: `
-          <h2>Booking Confirmed!</h2>
-          <p>Thank you for choosing Skoot Transportation. Your booking has been confirmed.</p>
-          <h3>Booking Details:</h3>
-          <ul>
-            <li><strong>Booking Number:</strong> {{bookingNumber}}</li>
-            <li><strong>Date:</strong> {{departureDate}}</li>
-            <li><strong>Time:</strong> {{departureTime}}</li>
-            <li><strong>Pickup:</strong> {{pickupLocation}}</li>
-            <li><strong>Destination:</strong> {{destination}}</li>
-            <li><strong>Passengers:</strong> {{passengerCount}}</li>
-            <li><strong>Total Amount:</strong> ${{totalAmount}}</li>
-          </ul>
-          <p>Please arrive 15 minutes before your scheduled departure time.</p>
-          <p>Safe travels!</p>
-        `,
+        htmlBody: '<h2>Booking Confirmed!</h2><p>Thank you for choosing Skoot Transportation. Your booking has been confirmed.</p><h3>Booking Details:</h3><ul><li><strong>Booking Number:</strong> {{bookingNumber}}</li><li><strong>Date:</strong> {{departureDate}}</li><li><strong>Time:</strong> {{departureTime}}</li><li><strong>Pickup:</strong> {{pickupLocation}}</li><li><strong>Destination:</strong> {{destination}}</li><li><strong>Passengers:</strong> {{passengerCount}}</li><li><strong>Total Amount:</strong> ${{totalAmount}}</li></ul><p>Please arrive 15 minutes before your scheduled departure time.</p><p>Safe travels!</p>',
         textBody: 'Booking Confirmed! Booking Number: {{bookingNumber}}. Date: {{departureDate}} at {{departureTime}}. Please arrive 15 minutes early.',
       }
     }),
@@ -523,13 +508,7 @@ async function main() {
       data: {
         name: 'payment_confirmation',
         subject: 'Payment Received - Skoot Transportation',
-        htmlBody: `
-          <h2>Payment Confirmed</h2>
-          <p>We have successfully processed your payment for booking {{bookingNumber}}.</p>
-          <p><strong>Amount Paid:</strong> ${{amount}}</p>
-          <p><strong>Transaction ID:</strong> {{transactionId}}</p>
-          <p>Your seat is now secured. We'll see you at departure!</p>
-        `,
+        htmlBody: '<h2>Payment Confirmed</h2><p>We have successfully processed your payment for booking {{bookingNumber}}.</p><p><strong>Amount Paid:</strong> ${{amount}}</p><p><strong>Transaction ID:</strong> {{transactionId}}</p><p>Your seat is now secured. We\'ll see you at departure!</p>',
         textBody: 'Payment confirmed for booking {{bookingNumber}}. Amount: ${{amount}}. Transaction ID: {{transactionId}}.',
       }
     }),
@@ -537,18 +516,7 @@ async function main() {
       data: {
         name: 'departure_reminder',
         subject: 'Departure Reminder - Tomorrow\'s Trip',
-        htmlBody: `
-          <h2>Departure Reminder</h2>
-          <p>This is a friendly reminder about your upcoming trip tomorrow.</p>
-          <h3>Trip Details:</h3>
-          <ul>
-            <li><strong>Date:</strong> {{departureDate}}</li>
-            <li><strong>Departure Time:</strong> {{departureTime}}</li>
-            <li><strong>Pickup Location:</strong> {{pickupLocation}}</li>
-          </ul>
-          <p><strong>Please arrive 15 minutes early.</strong></p>
-          <p>Have your booking confirmation ready and enjoy your trip!</p>
-        `,
+        htmlBody: '<h2>Departure Reminder</h2><p>This is a friendly reminder about your upcoming trip tomorrow.</p><h3>Trip Details:</h3><ul><li><strong>Date:</strong> {{departureDate}}</li><li><strong>Departure Time:</strong> {{departureTime}}</li><li><strong>Pickup Location:</strong> {{pickupLocation}}</li></ul><p><strong>Please arrive 15 minutes early.</strong></p><p>Have your booking confirmation ready and enjoy your trip!</p>',
         textBody: 'Departure reminder: Your trip is tomorrow at {{departureTime}} from {{pickupLocation}}. Please arrive 15 minutes early.',
       }
     })
