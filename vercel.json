@@ -1,27 +1,11 @@
 {
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
   "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30
+    },
     "src/app/api/**/*.ts": {
       "maxDuration": 30
     }
-  },
-  "env": {
-    "DATABASE_URL": "@database_url",
-    "NEXTAUTH_SECRET": "@nextauth_secret",
-    "NEXTAUTH_URL": "@nextauth_url",
-    "STRIPE_PUBLISHABLE_KEY": "@stripe_publishable_key",
-    "STRIPE_SECRET_KEY": "@stripe_secret_key",
-    "STRIPE_WEBHOOK_SECRET": "@stripe_webhook_secret",
-    "SMTP_HOST": "@smtp_host",
-    "SMTP_PORT": "@smtp_port",
-    "SMTP_USER": "@smtp_user",
-    "SMTP_PASSWORD": "@smtp_password",
-    "SMTP_FROM": "@smtp_from"
   },
   "headers": [
     {
@@ -29,7 +13,7 @@
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "*"
+          "value": "https://skoot.bike"
         },
         {
           "key": "Access-Control-Allow-Methods",
@@ -40,12 +24,6 @@
           "value": "Content-Type, Authorization"
         }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/stripe/webhook",
-      "destination": "/api/stripe/webhook"
     }
   ]
 }
