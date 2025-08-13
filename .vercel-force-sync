@@ -1,0 +1,12 @@
+# Force Vercel Sync - Timestamp: 2025-08-13T10:10:00Z
+# This file forces Vercel to use the latest commit
+# Latest commit should be: e8309f8 - Remove 4pm shuttle from all schedules
+# Previous commits include:
+# - fe5edc6: Fix Prisma TypeScript error in seed file  
+# - 9620fd0: Add missing Tailwind CSS plugins for build
+
+All fixes applied:
+✅ Form dependencies (react-hook-form, zod)
+✅ Tailwind plugins (@tailwindcss/forms, @tailwindcss/typography)  
+✅ Prisma TypeScript errors (faq → fAQ)
+✅ Schedule updates (removed 4pm shuttle)
