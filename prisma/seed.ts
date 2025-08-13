@@ -10,7 +10,7 @@ async function main() {
   // await prisma.emailTemplate.deleteMany()
   // await prisma.revenueReport.deleteMany()
   // await prisma.testimonial.deleteMany()
-  // await prisma.faq.deleteMany()
+  // await prisma.fAQ.deleteMany()
   // await prisma.siteSettings.deleteMany()
   // await prisma.passenger.deleteMany()
   // await prisma.payment.deleteMany()
@@ -410,7 +410,7 @@ async function main() {
 
   // Create FAQ entries
   const faqs = await Promise.all([
-    prisma.faq.create({
+    prisma.fAQ.create({
       data: {
         question: 'What are your operating hours?',
         answer: 'We operate departures every even hour from 6:00 AM to 8:00 PM (6AM, 8AM, 10AM, 12PM, 2PM, 4PM, 6PM, 8PM), 7 days a week.',
@@ -418,7 +418,7 @@ async function main() {
         sortOrder: 1,
       }
     }),
-    prisma.faq.create({
+    prisma.fAQ.create({
       data: {
         question: 'How long does the trip take?',
         answer: 'The journey from Columbia to Charlotte Airport takes approximately 100-130 minutes, including a 10-minute stop in Rock Hill.',
@@ -426,7 +426,7 @@ async function main() {
         sortOrder: 2,
       }
     }),
-    prisma.faq.create({
+    prisma.fAQ.create({
       data: {
         question: 'What are your pickup locations in Columbia?',
         answer: 'We pick up from Downtown Columbia, USC Campus (Russell House), Fort Jackson Main Gate, and select hotels including Hampton Inn Downtown and Hotel Trundle.',
@@ -434,7 +434,7 @@ async function main() {
         sortOrder: 3,
       }
     }),
-    prisma.faq.create({
+    prisma.fAQ.create({
       data: {
         question: 'How much does it cost?',
         answer: 'Regular adult fare is $35. Students and military personnel pay $32 with valid ID. Our first 100 customers get a lifetime rate of $31. Round trip tickets are $62 and valid for 30 days.',
@@ -442,7 +442,7 @@ async function main() {
         sortOrder: 4,
       }
     }),
-    prisma.faq.create({
+    prisma.fAQ.create({
       data: {
         question: 'Can I bring luggage?',
         answer: 'Yes! Standard luggage is included. Extra bags are $5 each. We accommodate standard airline luggage sizes.',
@@ -450,7 +450,7 @@ async function main() {
         sortOrder: 5,
       }
     }),
-    prisma.faq.create({
+    prisma.fAQ.create({
       data: {
         question: 'Are pets allowed?',
         answer: 'Yes, we welcome pets for an additional $10 fee. Pets must be in carriers or on leash and well-behaved.',
@@ -458,7 +458,7 @@ async function main() {
         sortOrder: 6,
       }
     }),
-    prisma.faq.create({
+    prisma.fAQ.create({
       data: {
         question: 'How many passengers per vehicle?',
         answer: 'Each departure has a maximum capacity of 15 passengers to ensure comfort and safety.',
@@ -466,7 +466,7 @@ async function main() {
         sortOrder: 7,
       }
     }),
-    prisma.faq.create({
+    prisma.fAQ.create({
       data: {
         question: 'How do I cancel or change my booking?',
         answer: 'You can cancel or modify your booking through your customer account or by calling our customer service line at least 2 hours before departure.',
@@ -474,7 +474,7 @@ async function main() {
         sortOrder: 8,
       }
     }),
-    prisma.faq.create({
+    prisma.fAQ.create({
       data: {
         question: 'Do you offer round trip tickets?',
         answer: 'Yes! Round trip tickets are $62 and are valid for 30 days from the date of purchase, giving you flexibility for your return journey.',
@@ -482,7 +482,7 @@ async function main() {
         sortOrder: 9,
       }
     }),
-    prisma.faq.create({
+    prisma.fAQ.create({
       data: {
         question: 'What happens if my flight is delayed?',
         answer: 'We monitor flight schedules and can accommodate minor delays. For significant delays, please contact us to discuss rebooking options.',
