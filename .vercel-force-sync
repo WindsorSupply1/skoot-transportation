@@ -1,7 +1,8 @@
-# Force Vercel Sync - Timestamp: 2025-08-13T10:10:00Z
+# Force Vercel Sync - Timestamp: 2025-08-13T10:33:00Z
 # This file forces Vercel to use the latest commit
-# Latest commit should be: e8309f8 - Remove 4pm shuttle from all schedules
+# Latest commit should be: 1d2c150 - Fix TypeScript error in seed.ts email template
 # Previous commits include:
+# - b848832: Remove 4pm shuttle from all schedules
 # - fe5edc6: Fix Prisma TypeScript error in seed file  
 # - 9620fd0: Add missing Tailwind CSS plugins for build
 
@@ -10,3 +11,4 @@ All fixes applied:
 ✅ Tailwind plugins (@tailwindcss/forms, @tailwindcss/typography)  
 ✅ Prisma TypeScript errors (faq → fAQ)
 ✅ Schedule updates (removed 4pm shuttle)
+✅ Email template TypeScript fix (totalAmount → amount)
