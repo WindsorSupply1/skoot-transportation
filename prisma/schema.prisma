@@ -1,0 +1,378 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  firstName String
+  lastName  String
+  phone     String?
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Profile information
+  dateOfBirth     DateTime?
+  emergencyContact String?
+  emergencyPhone   String?
+  
+  // Customer type for pricing
+  customerType    CustomerType @default(REGULAR)
+  studentId       String? // For student verification
+  militaryId      String? // For military verification
+  
+  // Legacy pricing (first 100 customers)
+  isLegacyCustomer Boolean @default(false)
+  legacyPrice      Float?
+
+  // Relationships
+  bookings     Booking[]
+  testimonials Testimonial[]
+  
+  @@map("users")
+}
+
+// Customer Types for Pricing
+enum CustomerType {
+  REGULAR
+  STUDENT
+  MILITARY
+  LEGACY
+}
+
+// Routes and Locations
+model Route {
+  id          String @id @default(cuid())
+  name        String
+  origin      String
+  destination String
+  duration    Int    // Duration in minutes
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  schedules Schedule[]
+  bookings  Booking[]
+  
+  @@map("routes")
+}
+
+model Location {
+  id          String  @id @default(cuid())
+  name        String
+  address     String
+  city        String
+  state       String
+  zipCode     String
+  latitude    Float?
+  longitude   Float?
+  isPickup    Boolean @default(false)
+  isDropoff   Boolean @default(false)
+  isActive    Boolean @default(true)
+  sortOrder   Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  pickupBookings  Booking[] @relation("PickupLocation")
+  dropoffBookings Booking[] @relation("DropoffLocation")
+  
+  @@map("locations")
+}
+
+// Schedules and Departures
+model Schedule {
+  id        String @id @default(cuid())
+  routeId   String
+  dayOfWeek Int    // 0 = Sunday, 1 = Monday, etc.
+  time      String // Format: "HH:MM" (24-hour format)
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  route      Route       @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  departures Departure[]
+  
+  @@map("schedules")
+}
+
+model Departure {
+  id           String   @id @default(cuid())
+  scheduleId   String
+  date         DateTime // Specific date for this departure
+  capacity     Int      @default(15)
+  bookedSeats  Int      @default(0)
+  status       DepartureStatus @default(SCHEDULED)
+  driverNotes  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relationships
+  schedule Schedule  @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+  returnBookings Booking[] @relation("ReturnBooking")
+  
+  @@unique([scheduleId, date])
+  @@map("departures")
+}
+
+enum DepartureStatus {
+  SCHEDULED
+  BOARDING
+  IN_TRANSIT
+  COMPLETED
+  CANCELLED
+  DELAYED
+}
+
+// Pricing Management
+model PricingTier {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  basePrice   Float
+  customerType CustomerType
+  isActive    Boolean @default(true)
+  validFrom   DateTime @default(now())
+  validTo     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  bookings Booking[]
+  
+  @@map("pricing_tiers")
+}
+
+// Booking Management
+model Booking {
+  id            String        @id @default(cuid())
+  bookingNumber String        @unique @default(cuid())
+  userId        String
+  routeId       String
+  departureId   String
+  pickupLocationId   String
+  dropoffLocationId  String
+  pricingTierId String
+  
+  // Booking details
+  passengerCount    Int @default(1)
+  totalAmount       Float
+  extraLuggageBags  Int @default(0)
+  extraLuggageFee   Float @default(0)
+  petCount          Int @default(0)
+  petFee            Float @default(0)
+  
+  // Trip type
+  isRoundTrip       Boolean @default(false)
+  returnDepartureId String?
+  
+  // Status and timestamps
+  status        BookingStatus @default(PENDING)
+  bookedAt      DateTime @default(now())
+  confirmedAt   DateTime?
+  cancelledAt   DateTime?
+  completedAt   DateTime?
+  
+  // Special notes
+  specialRequests String?
+  adminNotes      String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  user            User         @relation(fields: [userId], references: [id])
+  route           Route        @relation(fields: [routeId], references: [id])
+  departure       Departure    @relation(fields: [departureId], references: [id])
+  returnDeparture Departure?   @relation("ReturnBooking", fields: [returnDepartureId], references: [id])
+  pickupLocation  Location     @relation("PickupLocation", fields: [pickupLocationId], references: [id])
+  dropoffLocation Location     @relation("DropoffLocation", fields: [dropoffLocationId], references: [id])
+  pricingTier     PricingTier  @relation(fields: [pricingTierId], references: [id])
+  payment         Payment?
+  passengers      Passenger[]
+  
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  PAID
+  CHECKED_IN
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+// Passenger Information
+model Passenger {
+  id        String @id @default(cuid())
+  bookingId String
+  firstName String
+  lastName  String
+  age       Int?
+  email     String?
+  phone     String?
+  seatNumber String?
+  checkedIn  Boolean @default(false)
+  checkedInAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  @@map("passengers")
+}
+
+// Payment Management
+model Payment {
+  id                String        @id @default(cuid())
+  bookingId         String        @unique
+  amount            Float
+  currency          String        @default("USD")
+  status            PaymentStatus @default(PENDING)
+  paymentMethod     String?       // Credit card, PayPal, etc.
+  transactionId     String?       // External payment processor ID
+  processedAt       DateTime?
+  refundedAt        DateTime?
+  refundAmount      Float?
+  refundReason      String?
+  processorFee      Float?
+  netAmount         Float?
+  failureReason     String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relationships
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  @@map("payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+// Email Communications
+model EmailTemplate {
+  id        String  @id @default(cuid())
+  name      String  @unique
+  subject   String
+  htmlBody  String
+  textBody  String?
+  isActive  Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  emailLogs EmailLog[]
+  
+  @@map("email_templates")
+}
+
+model EmailLog {
+  id         String      @id @default(cuid())
+  templateId String?
+  userId     String?
+  bookingId  String?
+  toEmail    String
+  fromEmail  String
+  subject    String
+  status     EmailStatus @default(PENDING)
+  sentAt     DateTime?
+  failedAt   DateTime?
+  errorMessage String?
+  createdAt  DateTime   @default(now())
+
+  // Relationships
+  template EmailTemplate? @relation(fields: [templateId], references: [id])
+  
+  @@map("email_logs")
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+  BOUNCED
+}
+
+// Content Management
+model Testimonial {
+  id        String  @id @default(cuid())
+  userId    String?
+  name      String
+  title     String?
+  content   String
+  rating    Int     // 1-5 stars
+  isVisible Boolean @default(false)
+  isVerified Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  user User? @relation(fields: [userId], references: [id])
+  
+  @@map("testimonials")
+}
+
+model FAQ {
+  id        String  @id @default(cuid())
+  question  String
+  answer    String
+  category  String?
+  sortOrder Int     @default(0)
+  isVisible Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("faqs")
+}
+
+// System Configuration
+model SiteSettings {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+  type  String @default("string") // string, number, boolean, json
+  description String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("site_settings")
+}
+
+// Analytics and Reporting
+model RevenueReport {
+  id              String   @id @default(cuid())
+  reportDate      DateTime
+  totalBookings   Int
+  totalRevenue    Float
+  totalPassengers Int
+  averageBookingValue Float
+  cancellationRate    Float
+  occupancyRate       Float
+  createdAt       DateTime @default(now())
+  
+  @@unique([reportDate])
+  @@map("revenue_reports")
+}
