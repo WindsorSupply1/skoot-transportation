@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
         },
         pickupLocation: true,
         dropoffLocation: true,
+        user: true,
         passengers: true
       }
     });
@@ -61,8 +62,8 @@ export async function POST(request: NextRequest) {
       currency,
       metadata: {
         bookingId: booking.id,
-        confirmationCode: booking.confirmationCode,
-        customerEmail: booking.contactEmail,
+        bookingNumber: booking.bookingNumber,
+        customerEmail: booking.user.email,
         departureDate: booking.departure.date.toISOString(),
         passengerCount: booking.passengerCount.toString(),
         route: booking.departure.schedule.route.name
