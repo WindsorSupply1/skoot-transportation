@@ -22,10 +22,11 @@ export async function POST(request: NextRequest) {
       include: {
         departure: {
           include: {
-            schedule: { include: { route: true } },
-            pickupLocation: true
+            schedule: { include: { route: true } }
           }
         },
+        pickupLocation: true,
+        dropoffLocation: true,
         passengers: true
       }
     });
