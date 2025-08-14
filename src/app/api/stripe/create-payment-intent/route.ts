@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
         route: booking.departure.schedule.route.name
       },
       description: `Skoot Transportation - ${booking.departure.schedule.route.name} - ${booking.passengerCount} passenger(s)`,
-      receipt_email: booking.contactEmail,
+      receipt_email: booking.user.email,
       automatic_payment_methods: {
         enabled: true,
       },
