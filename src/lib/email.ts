@@ -14,24 +14,31 @@ const transporter = nodemailer.createTransporter({
 
 interface BookingWithDetails {
   id: string;
-  confirmationCode: string;
-  contactEmail: string;
+  bookingNumber: string;
   totalAmount: number;
   passengerCount: number;
-  extraLuggage: number;
-  pets: number;
+  extraLuggageBags: number;
+  extraLuggageFee: number;
+  petCount: number;
+  petFee: number;
+  user: {
+    email: string;
+    firstName: string;
+    lastName: string;
+  };
   departure: {
     date: Date;
     schedule: {
       time: string;
       route: {
         name: string;
-        origin: { name: string; address: string };
-        destination: { name: string; address: string };
+        origin: string;
+        destination: string;
       };
     };
-    pickupLocation: { name: string; address: string } | null;
   };
+  pickupLocation: { name: string; address: string };
+  dropoffLocation: { name: string; address: string };
   returnDeparture?: {
     date: Date;
     schedule: {
@@ -40,7 +47,6 @@ interface BookingWithDetails {
         name: string;
       };
     };
-    pickupLocation: { name: string; address: string } | null;
   } | null;
   passengers: Array<{
     firstName: string;
@@ -48,8 +54,8 @@ interface BookingWithDetails {
   }>;
   payment: {
     amount: number;
-    paymentMethod: string;
-    paidAt: Date | null;
+    paymentMethod: string | null;
+    processedAt: Date | null;
   } | null;
 }
 
@@ -81,18 +87,18 @@ export async function sendBookingConfirmationEmail(booking: BookingWithDetails) 
     let textBody = emailTemplate.textBody || '';
 
     const replacements = {
-      '{{confirmationCode}}': booking.confirmationCode,
+      '{{confirmationCode}}': booking.bookingNumber,
       '{{passengerNames}}': passengerList,
       '{{passengerCount}}': booking.passengerCount.toString(),
       '{{departureDate}}': departureDate,
       '{{departureTime}}': departureTime,
-      '{{pickupLocation}}': booking.departure.pickupLocation?.name || 'TBD',
-      '{{pickupAddress}}': booking.departure.pickupLocation?.address || 'TBD',
-      '{{destination}}': booking.departure.schedule.route.destination.name,
+      '{{pickupLocation}}': booking.pickupLocation.name,
+      '{{pickupAddress}}': booking.pickupLocation.address,
+      '{{destination}}': booking.departure.schedule.route.destination,
       '{{routeName}}': booking.departure.schedule.route.name,
       '{{totalAmount}}': `$${booking.totalAmount.toFixed(2)}`,
-      '{{extraLuggage}}': booking.extraLuggage.toString(),
-      '{{pets}}': booking.pets.toString(),
+      '{{extraLuggage}}': booking.extraLuggageBags.toString(),
+      '{{pets}}': booking.petCount.toString(),
       '{{returnInfo}}': booking.returnDeparture 
         ? `Return: ${new Date(booking.returnDeparture.date).toLocaleDateString()} at ${formatTime(booking.returnDeparture.schedule.time)}`
         : 'One-way trip',
@@ -105,8 +111,8 @@ export async function sendBookingConfirmationEmail(booking: BookingWithDetails) 
 
     const mailOptions = {
       from: `"Skoot Transportation" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-      to: booking.contactEmail,
-      subject: `Booking Confirmed - ${booking.confirmationCode} - Skoot Transportation`,
+      to: booking.user.email,
+      subject: `Booking Confirmed - ${booking.bookingNumber} - Skoot Transportation`,
       html: emailBody,
       text: textBody,
     };
@@ -117,7 +123,7 @@ export async function sendBookingConfirmationEmail(booking: BookingWithDetails) 
     await prisma.emailLog.create({
       data: {
         bookingId: booking.id,
-        recipientEmail: booking.contactEmail,
+        recipientEmail: booking.user.email,
         emailType: 'BOOKING_CONFIRMATION',
         status: 'SENT',
         sentAt: new Date(),
@@ -135,7 +141,7 @@ export async function sendBookingConfirmationEmail(booking: BookingWithDetails) 
     await prisma.emailLog.create({
       data: {
         bookingId: booking.id,
-        recipientEmail: booking.contactEmail,
+        recipientEmail: booking.user.email,
         emailType: 'BOOKING_CONFIRMATION',
         status: 'FAILED',
         errorMessage: error instanceof Error ? error.message : 'Unknown error',
@@ -167,7 +173,7 @@ export async function sendPaymentReceiptEmail(booking: BookingWithDetails) {
     let textBody = emailTemplate.textBody || '';
 
     const replacements = {
-      '{{confirmationCode}}': booking.confirmationCode,
+      '{{confirmationCode}}': booking.bookingNumber,
       '{{paymentAmount}}': `$${booking.payment.amount.toFixed(2)}`,
       '{{paymentMethod}}': booking.payment.paymentMethod,
       '{{paymentDate}}': paidDate,
@@ -182,8 +188,8 @@ export async function sendPaymentReceiptEmail(booking: BookingWithDetails) {
 
     const mailOptions = {
       from: `"Skoot Transportation" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-      to: booking.contactEmail,
-      subject: `Payment Receipt - ${booking.confirmationCode} - Skoot Transportation`,
+      to: booking.user.email,
+      subject: `Payment Receipt - ${booking.bookingNumber} - Skoot Transportation`,
       html: emailBody,
       text: textBody,
     };
@@ -193,7 +199,7 @@ export async function sendPaymentReceiptEmail(booking: BookingWithDetails) {
     await prisma.emailLog.create({
       data: {
         bookingId: booking.id,
-        recipientEmail: booking.contactEmail,
+        recipientEmail: booking.user.email,
         emailType: 'PAYMENT_RECEIPT',
         status: 'SENT',
         sentAt: new Date(),
@@ -230,7 +236,7 @@ export async function sendBookingReminderEmail(booking: BookingWithDetails, remi
     let textBody = emailTemplate.textBody || '';
 
     const replacements = {
-      '{{confirmationCode}}': booking.confirmationCode,
+      '{{confirmationCode}}': booking.bookingNumber,
       '{{departureDate}}': departureDate,
       '{{departureTime}}': departureTime,
       '{{pickupLocation}}': booking.departure.pickupLocation?.name || 'TBD',
@@ -245,8 +251,8 @@ export async function sendBookingReminderEmail(booking: BookingWithDetails, remi
 
     const mailOptions = {
       from: `"Skoot Transportation" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-      to: booking.contactEmail,
-      subject: `Departure Reminder - ${booking.confirmationCode} - Skoot Transportation`,
+      to: booking.user.email,
+      subject: `Departure Reminder - ${booking.bookingNumber} - Skoot Transportation`,
       html: emailBody,
       text: textBody,
     };
@@ -256,7 +262,7 @@ export async function sendBookingReminderEmail(booking: BookingWithDetails, remi
     await prisma.emailLog.create({
       data: {
         bookingId: booking.id,
-        recipientEmail: booking.contactEmail,
+        recipientEmail: booking.user.email,
         emailType: reminderType,
         status: 'SENT',
         sentAt: new Date(),
