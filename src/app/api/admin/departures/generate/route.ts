@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
                 scheduleId: schedule.id,
                 date: new Date(currentDate),
                 capacity,
-                status: 'SCHEDULED'
+                status: 'SCHEDULED' as any
               });
             }
           }
