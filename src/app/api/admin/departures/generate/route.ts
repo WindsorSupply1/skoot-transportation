@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
               departureDateTime.setHours(hours, minutes, 0, 0);
               
               const estimatedArrival = new Date(departureDateTime);
-              estimatedArrival.setMinutes(estimatedArrival.getMinutes() + schedule.route.estimatedDuration);
+              estimatedArrival.setMinutes(estimatedArrival.getMinutes() + schedule.route.duration);
 
               const arrivalTimeString = estimatedArrival.toLocaleTimeString('en-US', {
                 hour: 'numeric',
