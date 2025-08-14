@@ -51,7 +51,7 @@ interface TodayDeparture {
   bookedSeats: number;
   availableSeats: number;
   schedule: {
-    departureTime: string;
+    time: string;
     route: {
       name: string;
       origin: string;
