@@ -7,7 +7,7 @@ export interface AuthUser {
   id: string;
   email: string;
   name: string;
-  role: 'ADMIN' | 'CUSTOMER';
+  isAdmin: boolean;
 }
 
 // Get current session for server-side use
@@ -26,7 +26,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
         email: true,
         firstName: true,
         lastName: true,
-        role: true
+        isAdmin: true
       }
     });
 
@@ -38,7 +38,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
       id: user.id,
       email: user.email,
       name: `${user.firstName} ${user.lastName}`,
-      role: user.role as 'ADMIN' | 'CUSTOMER'
+      isAdmin: user.isAdmin
     };
   } catch (error) {
     console.error('Error getting current user:', error);
@@ -54,7 +54,7 @@ export async function requireAdmin(): Promise<AuthUser> {
     throw new Error('Authentication required');
   }
   
-  if (user.role !== 'ADMIN') {
+  if (!user.isAdmin) {
     throw new Error('Admin access required');
   }
   
@@ -65,7 +65,7 @@ export async function requireAdmin(): Promise<AuthUser> {
 export async function withAuth(
   request: NextRequest,
   handler: (request: NextRequest, user: AuthUser) => Promise<Response>,
-  requireRole?: 'ADMIN' | 'CUSTOMER'
+  requireAdmin?: boolean
 ): Promise<Response> {
   try {
     const user = await getCurrentUser();
@@ -77,8 +77,8 @@ export async function withAuth(
       });
     }
     
-    if (requireRole && user.role !== requireRole) {
-      return new Response(JSON.stringify({ error: 'Insufficient permissions' }), {
+    if (requireAdmin && !user.isAdmin) {
+      return new Response(JSON.stringify({ error: 'Admin access required' }), {
         status: 403,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -127,7 +127,7 @@ export const SESSION_CONFIG = {
     authorized: ({ token, req }: { token: any; req: any }) => {
       // Protect admin routes
       if (req.nextUrl?.pathname?.startsWith('/admin')) {
-        return token?.role === 'ADMIN';
+        return token?.isAdmin === true;
       }
       
       // Protect customer dashboard routes

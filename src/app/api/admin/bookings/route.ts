@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       console.error('Bookings fetch error:', error);
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-  }, 'ADMIN');
+  }, true);
 }
 
 export async function PUT(request: NextRequest) {
@@ -171,5 +171,5 @@ export async function PUT(request: NextRequest) {
       console.error('Booking update error:', error);
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-  }, 'ADMIN');
+  }, true);
 }
