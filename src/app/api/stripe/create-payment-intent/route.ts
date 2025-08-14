@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     await prisma.payment.create({
       data: {
         bookingId: booking.id,
-        stripePaymentIntentId: paymentIntent.id,
+        transactionId: paymentIntent.id,
         amount: booking.totalAmount,
         currency: currency.toUpperCase(),
         status: 'PENDING',
@@ -90,14 +90,15 @@ export async function POST(request: NextRequest) {
       paymentIntentId: paymentIntent.id,
       amount: expectedAmount,
       booking: {
-        confirmationCode: booking.confirmationCode,
+        bookingNumber: booking.bookingNumber,
         totalAmount: booking.totalAmount,
         passengerCount: booking.passengerCount,
         departure: {
           date: booking.departure.date,
-          time: booking.departure.schedule.departureTime,
-          location: booking.departure.pickupLocation?.name
-        }
+          time: booking.departure.schedule.time,
+          route: booking.departure.schedule.route.name
+        },
+        pickupLocation: booking.pickupLocation.name
       }
     });
 

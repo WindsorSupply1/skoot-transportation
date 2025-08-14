@@ -26,8 +26,8 @@ interface DashboardStats {
 
 interface RecentBooking {
   id: string;
-  confirmationCode: string;
-  contactEmail: string;
+  bookingNumber: string;
+  user: { email: string; firstName: string; lastName: string };
   passengerCount: number;
   totalAmount: number;
   bookingStatus: string;
@@ -36,7 +36,7 @@ interface RecentBooking {
   departure: {
     date: string;
     schedule: {
-      departureTime: string;
+      time: string;
       route: {
         name: string;
       };
@@ -263,7 +263,7 @@ export default function AdminDashboard() {
                       <div className="flex-1">
                         <div className="flex items-center gap-4">
                           <div className="text-lg font-bold text-gray-900">
-                            {formatTime(departure.schedule.departureTime)}
+                            {formatTime(departure.schedule.time)}
                           </div>
                           <div className="text-sm text-gray-600">
                             <MapPin className="inline h-4 w-4 mr-1" />
@@ -319,10 +319,10 @@ export default function AdminDashboard() {
                           </span>
                         </div>
                         <div className="mt-1 text-sm text-gray-600">
-                          {booking.contactEmail} • {booking.passengerCount} passenger{booking.passengerCount > 1 ? 's' : ''}
+                          {booking.user.email} • {booking.passengerCount} passenger{booking.passengerCount > 1 ? 's' : ''}
                         </div>
                         <div className="mt-1 text-sm text-gray-500">
-                          {booking.departure.schedule.route.name} • {formatDate(booking.departure.date)} at {formatTime(booking.departure.schedule.departureTime)}
+                          {booking.departure.schedule.route.name} • {formatDate(booking.departure.date)} at {formatTime(booking.departure.schedule.time)}
                         </div>
                       </div>
                       <div className="text-right">

@@ -23,7 +23,7 @@ interface BookingWithDetails {
   departure: {
     date: Date;
     schedule: {
-      departureTime: string;
+      time: string;
       route: {
         name: string;
         origin: { name: string; address: string };
@@ -35,7 +35,7 @@ interface BookingWithDetails {
   returnDeparture?: {
     date: Date;
     schedule: {
-      departureTime: string;
+      time: string;
       route: {
         name: string;
       };
@@ -57,7 +57,7 @@ export async function sendBookingConfirmationEmail(booking: BookingWithDetails) 
   try {
     const emailTemplate = await prisma.emailTemplate.findFirst({
       where: {
-        templateType: 'BOOKING_CONFIRMATION',
+        name: 'BOOKING_CONFIRMATION',
         isActive: true
       }
     });
@@ -73,12 +73,12 @@ export async function sendBookingConfirmationEmail(booking: BookingWithDetails) 
       day: 'numeric'
     });
 
-    const departureTime = formatTime(booking.departure.schedule.departureTime);
+    const departureTime = formatTime(booking.departure.schedule.time);
     const passengerList = booking.passengers.map(p => `${p.firstName} ${p.lastName}`).join(', ');
 
     // Replace template variables
-    let emailBody = emailTemplate.htmlContent;
-    let textBody = emailTemplate.textContent || '';
+    let emailBody = emailTemplate.htmlBody;
+    let textBody = emailTemplate.textBody || '';
 
     const replacements = {
       '{{confirmationCode}}': booking.confirmationCode,
@@ -94,7 +94,7 @@ export async function sendBookingConfirmationEmail(booking: BookingWithDetails) 
       '{{extraLuggage}}': booking.extraLuggage.toString(),
       '{{pets}}': booking.pets.toString(),
       '{{returnInfo}}': booking.returnDeparture 
-        ? `Return: ${new Date(booking.returnDeparture.date).toLocaleDateString()} at ${formatTime(booking.returnDeparture.schedule.departureTime)}`
+        ? `Return: ${new Date(booking.returnDeparture.date).toLocaleDateString()} at ${formatTime(booking.returnDeparture.schedule.time)}`
         : 'One-way trip',
     };
 
@@ -150,7 +150,7 @@ export async function sendPaymentReceiptEmail(booking: BookingWithDetails) {
   try {
     const emailTemplate = await prisma.emailTemplate.findFirst({
       where: {
-        templateType: 'PAYMENT_RECEIPT',
+        name: 'PAYMENT_RECEIPT',
         isActive: true
       }
     });
@@ -163,8 +163,8 @@ export async function sendPaymentReceiptEmail(booking: BookingWithDetails) {
       ? new Date(booking.payment.paidAt).toLocaleDateString()
       : new Date().toLocaleDateString();
 
-    let emailBody = emailTemplate.htmlContent;
-    let textBody = emailTemplate.textContent || '';
+    let emailBody = emailTemplate.htmlBody;
+    let textBody = emailTemplate.textBody || '';
 
     const replacements = {
       '{{confirmationCode}}': booking.confirmationCode,
@@ -214,7 +214,7 @@ export async function sendBookingReminderEmail(booking: BookingWithDetails, remi
   try {
     const emailTemplate = await prisma.emailTemplate.findFirst({
       where: {
-        templateType: reminderType,
+        name: reminderType,
         isActive: true
       }
     });
@@ -224,10 +224,10 @@ export async function sendBookingReminderEmail(booking: BookingWithDetails, remi
     }
 
     const departureDate = new Date(booking.departure.date).toLocaleDateString();
-    const departureTime = formatTime(booking.departure.schedule.departureTime);
+    const departureTime = formatTime(booking.departure.schedule.time);
 
-    let emailBody = emailTemplate.htmlContent;
-    let textBody = emailTemplate.textContent || '';
+    let emailBody = emailTemplate.htmlBody;
+    let textBody = emailTemplate.textBody || '';
 
     const replacements = {
       '{{confirmationCode}}': booking.confirmationCode,

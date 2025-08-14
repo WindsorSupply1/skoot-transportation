@@ -63,12 +63,11 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
     // Update payment record
     await prisma.payment.update({
       where: {
-        stripePaymentIntentId: paymentIntent.id
+        transactionId: paymentIntent.id
       },
       data: {
         status: 'COMPLETED',
-        stripeChargeId: paymentIntent.latest_charge as string,
-        paidAt: new Date(),
+        processedAt: new Date(),
       }
     });
 
@@ -77,21 +76,21 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
       where: { id: bookingId },
       data: {
         status: 'PAID',
-        status: 'CONFIRMED',
       },
       include: {
         departure: {
           include: {
-            schedule: { include: { route: true } },
-            pickupLocation: true
+            schedule: { include: { route: true } }
           }
         },
         returnDeparture: {
           include: {
-            schedule: { include: { route: true } },
-            pickupLocation: true
+            schedule: { include: { route: true } }
           }
         },
+        pickupLocation: true,
+        dropoffLocation: true,
+        user: true,
         passengers: true,
         payment: true
       }
@@ -120,7 +119,7 @@ async function handlePaymentFailure(paymentIntent: Stripe.PaymentIntent) {
     // Update payment record
     await prisma.payment.update({
       where: {
-        stripePaymentIntentId: paymentIntent.id
+        transactionId: paymentIntent.id
       },
       data: {
         status: 'FAILED',
@@ -132,8 +131,7 @@ async function handlePaymentFailure(paymentIntent: Stripe.PaymentIntent) {
     await prisma.booking.update({
       where: { id: bookingId },
       data: {
-        status: 'FAILED',
-        status: 'PAYMENT_FAILED',
+        status: 'CANCELLED',
       }
     });
 
@@ -156,10 +154,10 @@ async function handlePaymentCancellation(paymentIntent: Stripe.PaymentIntent) {
     // Update payment record
     await prisma.payment.update({
       where: {
-        stripePaymentIntentId: paymentIntent.id
+        transactionId: paymentIntent.id
       },
       data: {
-        status: 'CANCELLED',
+        status: 'FAILED',
       }
     });
 
@@ -167,7 +165,6 @@ async function handlePaymentCancellation(paymentIntent: Stripe.PaymentIntent) {
     await prisma.booking.update({
       where: { id: bookingId },
       data: {
-        status: 'CANCELLED',
         status: 'CANCELLED',
       }
     });

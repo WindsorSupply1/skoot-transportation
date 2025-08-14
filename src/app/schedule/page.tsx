@@ -6,7 +6,7 @@ import { Clock, MapPin, Users, AlertCircle } from 'lucide-react';
 interface Departure {
   id: string;
   date: string;
-  departureTime: string;
+  time: string;
   estimatedArrival: string;
   capacity: number;
   bookedSeats: number;
@@ -157,7 +157,7 @@ export default function SchedulePage() {
                         <div className="flex-1">
                           <div className="flex items-center gap-4 mb-2">
                             <div className="text-2xl font-bold text-gray-900">
-                              {formatTime(departure.departureTime)}
+                              {formatTime(departure.time)}
                             </div>
                             <div className="text-sm text-gray-500">
                               Arrives: {departure.estimatedArrival}
