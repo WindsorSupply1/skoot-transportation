@@ -34,18 +34,121 @@ export default function HomePage() {
               Reliable, comfortable shuttle service • Every even hour • 7 days a week
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                onClick={() => document.getElementById('booking-section')?.scrollIntoView({ behavior: 'smooth' })}
+                className="bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors text-lg"
+              >
+                Book Now
+              </button>
               <a 
-                href="/schedule" 
-                className="bg-white text-blue-800 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                href="#schedule" 
+                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-800 transition-colors"
               >
                 View Schedule
               </a>
               <a 
                 href="tel:+1-803-SKOOT-SC" 
-                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-800 transition-colors"
+                className="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-800 transition-colors"
               >
                 Call to Book
               </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Booking Section */}
+      <section id="booking-section" className="py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Book Your Trip</h2>
+            <p className="text-lg text-gray-600">Select your departure time and pickup location</p>
+          </div>
+
+          <div className="bg-gray-50 p-8 rounded-lg shadow-lg">
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Schedule */}
+              <div>
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">Daily Schedule</h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center p-3 bg-white rounded border">
+                    <span className="font-medium">6:00 AM</span>
+                    <span className="text-green-600 text-sm">Available</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-white rounded border">
+                    <span className="font-medium">8:00 AM</span>
+                    <span className="text-green-600 text-sm">Available</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-white rounded border">
+                    <span className="font-medium">10:00 AM</span>
+                    <span className="text-green-600 text-sm">Available</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-white rounded border">
+                    <span className="font-medium">12:00 PM</span>
+                    <span className="text-green-600 text-sm">Available</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-white rounded border">
+                    <span className="font-medium">2:00 PM</span>
+                    <span className="text-green-600 text-sm">Available</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-white rounded border">
+                    <span className="font-medium">6:00 PM</span>
+                    <span className="text-green-600 text-sm">Available</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-white rounded border">
+                    <span className="font-medium">8:00 PM</span>
+                    <span className="text-green-600 text-sm">Available</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pickup Locations */}
+              <div>
+                <h3 className="text-xl font-semibold mb-4 text-gray-900">Pickup Locations</h3>
+                <div className="space-y-2">
+                  <div className="p-3 bg-white rounded border hover:border-blue-500 cursor-pointer">
+                    <div className="font-medium">Downtown Columbia</div>
+                    <div className="text-sm text-gray-600">1425 Richland St</div>
+                  </div>
+                  <div className="p-3 bg-white rounded border hover:border-blue-500 cursor-pointer">
+                    <div className="font-medium">USC Campus - Russell House</div>
+                    <div className="text-sm text-gray-600">1400 Greene St</div>
+                  </div>
+                  <div className="p-3 bg-white rounded border hover:border-blue-500 cursor-pointer">
+                    <div className="font-medium">Fort Jackson Main Gate</div>
+                    <div className="text-sm text-gray-600">4442 Jackson Blvd</div>
+                  </div>
+                  <div className="p-3 bg-white rounded border hover:border-blue-500 cursor-pointer">
+                    <div className="font-medium">Hampton Inn Downtown</div>
+                    <div className="text-sm text-gray-600">822 Gervais St</div>
+                  </div>
+                  <div className="p-3 bg-white rounded border hover:border-blue-500 cursor-pointer">
+                    <div className="font-medium">Hotel Trundle</div>
+                    <div className="text-sm text-gray-600">1224 Taylor St</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 text-center">
+              <div className="mb-4">
+                <p className="text-lg font-semibold text-gray-900">Ready to book?</p>
+                <p className="text-gray-600">Call us or book online</p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <a 
+                  href="tel:+1-803-SKOOT-SC" 
+                  className="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  Call +1-803-SKOOT-SC
+                </a>
+                <a 
+                  href="mailto:hello@skoot.bike?subject=Booking Request&body=I would like to book a trip from Columbia to Charlotte Airport." 
+                  className="bg-orange-500 text-white px-8 py-3 rounded-lg font-semibold hover:bg-orange-600 transition-colors"
+                >
+                  Email to Book
+                </a>
+              </div>
             </div>
           </div>
         </div>
