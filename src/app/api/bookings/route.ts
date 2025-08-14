@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       where: { id: validatedData.departureId },
       include: {
         schedule: { include: { route: true } },
-        _count: { select: { passengers: true } }
+        _count: { select: { bookings: true } }
       }
     });
 
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Departure not found' }, { status: 404 });
     }
 
-    const availableSeats = departure.capacity - departure._count.passengers;
+    const availableSeats = departure.capacity - departure._count.bookings;
     if (availableSeats < validatedData.passengerCount) {
       return NextResponse.json({ 
         error: 'Not enough seats available',
