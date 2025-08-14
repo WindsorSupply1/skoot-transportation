@@ -22,8 +22,8 @@ export async function GET(request: NextRequest) {
             include: {
               route: {
                 include: {
-                  startLocation: true,
-                  endLocation: true
+                  origin: true,
+                  destination: true
                 }
               }
             }
@@ -52,13 +52,13 @@ export async function GET(request: NextRequest) {
           route: {
             id: departure.schedule.route.id,
             name: departure.schedule.route.name,
-            startLocation: {
-              id: departure.schedule.route.startLocation.id,
-              name: departure.schedule.route.startLocation.name
+            origin: {
+              id: departure.schedule.route.origin.id,
+              name: departure.schedule.route.origin.name
             },
-            endLocation: {
-              id: departure.schedule.route.endLocation.id,
-              name: departure.schedule.route.endLocation.name
+            destination: {
+              id: departure.schedule.route.destination.id,
+              name: departure.schedule.route.destination.name
             },
             estimatedDuration: departure.schedule.route.estimatedDuration
           }

@@ -54,8 +54,8 @@ interface TodayDeparture {
     departureTime: string;
     route: {
       name: string;
-      startLocation: { name: string };
-      endLocation: { name: string };
+      origin: string;
+      destination: string;
     };
   };
 }
@@ -267,7 +267,7 @@ export default function AdminDashboard() {
                           </div>
                           <div className="text-sm text-gray-600">
                             <MapPin className="inline h-4 w-4 mr-1" />
-                            {departure.schedule.route.startLocation.name} → {departure.schedule.route.endLocation.name}
+                            {departure.schedule.route.origin} → {departure.schedule.route.destination}
                           </div>
                         </div>
                         <div className="mt-2 text-sm text-gray-500">

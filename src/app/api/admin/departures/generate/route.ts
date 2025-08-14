@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
         include: {
           route: {
             include: {
-              startLocation: true,
-              endLocation: true
+              origin: true,
+              destination: true
             }
           }
         }

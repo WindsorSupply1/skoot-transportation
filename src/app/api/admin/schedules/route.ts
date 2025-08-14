@@ -18,8 +18,8 @@ export async function GET(request: NextRequest) {
         include: {
           route: {
             include: {
-              startLocation: true,
-              endLocation: true
+              origin: true,
+              destination: true
             }
           },
           departures: {
@@ -50,8 +50,8 @@ export async function GET(request: NextRequest) {
         route: {
           id: schedule.route.id,
           name: schedule.route.name,
-          startLocation: schedule.route.startLocation.name,
-          endLocation: schedule.route.endLocation.name,
+          origin: schedule.route.origin.name,
+          destination: schedule.route.destination.name,
           duration: schedule.route.estimatedDuration
         },
         upcomingDepartures: schedule.departures.map(departure => ({
@@ -109,8 +109,8 @@ export async function POST(request: NextRequest) {
         include: {
           route: {
             include: {
-              startLocation: true,
-              endLocation: true
+              origin: true,
+              destination: true
             }
           }
         }
@@ -152,8 +152,8 @@ export async function PUT(request: NextRequest) {
         include: {
           route: {
             include: {
-              startLocation: true,
-              endLocation: true
+              origin: true,
+              destination: true
             }
           }
         }

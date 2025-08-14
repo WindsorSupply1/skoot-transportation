@@ -14,8 +14,8 @@ interface Departure {
   availabilityStatus: 'HIGH' | 'MEDIUM' | 'LOW' | 'FULL';
   route: {
     name: string;
-    startLocation: string;
-    endLocation: string;
+    origin: string;
+    destination: string;
     duration: number;
   };
   isActive: boolean;
@@ -165,7 +165,7 @@ export default function SchedulePage() {
                           </div>
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <MapPin className="h-4 w-4" />
-                            <span>{departure.route.startLocation} → {departure.route.endLocation}</span>
+                            <span>{departure.route.origin} → {departure.route.destination}</span>
                             <span>•</span>
                             <span>{Math.floor(departure.route.duration / 60)}h {departure.route.duration % 60}m</span>
                           </div>

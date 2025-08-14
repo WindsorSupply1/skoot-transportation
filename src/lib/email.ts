@@ -26,8 +26,8 @@ interface BookingWithDetails {
       departureTime: string;
       route: {
         name: string;
-        startLocation: { name: string; address: string };
-        endLocation: { name: string; address: string };
+        origin: { name: string; address: string };
+        destination: { name: string; address: string };
       };
     };
     pickupLocation: { name: string; address: string } | null;
@@ -88,7 +88,7 @@ export async function sendBookingConfirmationEmail(booking: BookingWithDetails) 
       '{{departureTime}}': departureTime,
       '{{pickupLocation}}': booking.departure.pickupLocation?.name || 'TBD',
       '{{pickupAddress}}': booking.departure.pickupLocation?.address || 'TBD',
-      '{{destination}}': booking.departure.schedule.route.endLocation.name,
+      '{{destination}}': booking.departure.schedule.route.destination.name,
       '{{routeName}}': booking.departure.schedule.route.name,
       '{{totalAmount}}': `$${booking.totalAmount.toFixed(2)}`,
       '{{extraLuggage}}': booking.extraLuggage.toString(),

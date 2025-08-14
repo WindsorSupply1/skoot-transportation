@@ -52,12 +52,7 @@ export async function GET(request: NextRequest) {
               include: {
                 schedule: {
                   include: {
-                    route: {
-                      include: {
-                        startLocation: true,
-                        endLocation: true
-                      }
-                    }
+                    route: true
                   }
                 },
                 pickupLocation: true
@@ -67,12 +62,7 @@ export async function GET(request: NextRequest) {
               include: {
                 schedule: {
                   include: {
-                    route: {
-                      include: {
-                        startLocation: true,
-                        endLocation: true
-                      }
-                    }
+                    route: true
                   }
                 },
                 pickupLocation: true

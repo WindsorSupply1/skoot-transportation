@@ -33,8 +33,8 @@ export async function GET(request: NextRequest) {
           include: {
             route: {
               include: {
-                startLocation: true,
-                endLocation: true
+                origin: true,
+                destination: true
               }
             }
           }
@@ -72,8 +72,8 @@ export async function GET(request: NextRequest) {
         route: {
           id: departure.schedule.route.id,
           name: departure.schedule.route.name,
-          startLocation: departure.schedule.route.startLocation.name,
-          endLocation: departure.schedule.route.endLocation.name,
+          origin: departure.schedule.route.origin.name,
+          destination: departure.schedule.route.destination.name,
           duration: departure.schedule.route.estimatedDuration
         },
         isActive: departure.isActive,
