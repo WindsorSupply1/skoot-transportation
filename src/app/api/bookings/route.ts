@@ -78,8 +78,8 @@ export async function POST(request: NextRequest) {
         userId: null, // Guest booking
         passengerCount: validatedData.passengerCount,
         totalAmount: total,
-        bookingStatus: 'PENDING',
-        paymentStatus: 'PENDING',
+        status: 'PENDING',
+        status: 'PENDING',
         customerType: validatedData.customerType,
         contactEmail: validatedData.contactInfo.email,
         contactPhone: validatedData.contactInfo.phone,

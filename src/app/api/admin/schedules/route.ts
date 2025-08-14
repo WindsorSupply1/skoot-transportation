@@ -189,7 +189,7 @@ export async function DELETE(request: NextRequest) {
               gte: new Date()
             }
           },
-          bookingStatus: {
+          status: {
             in: ['PENDING', 'CONFIRMED']
           }
         }

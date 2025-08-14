@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       }, { status: 404 });
     }
 
-    if (booking.paymentStatus !== 'PENDING') {
+    if (booking.status !== 'PENDING') {
       return NextResponse.json({
         error: 'Booking payment already processed'
       }, { status: 400 });
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         stripePaymentIntentId: paymentIntent.id,
         amount: booking.totalAmount,
         currency: currency.toUpperCase(),
-        paymentStatus: 'PENDING',
+        status: 'PENDING',
         paymentMethod: 'STRIPE',
       }
     });

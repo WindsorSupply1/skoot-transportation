@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       const where: any = {};
 
       if (status && status !== 'all') {
-        where.bookingStatus = status;
+        where.status = status;
       }
 
       if (search) {
@@ -117,7 +117,7 @@ export async function PUT(request: NextRequest) {
 
       // Build update data
       const updateData: any = {};
-      if (bookingStatus !== undefined) updateData.bookingStatus = bookingStatus;
+      if (bookingStatus !== undefined) updateData.status = bookingStatus;
       if (notes !== undefined) updateData.notes = notes;
 
       // Update booking
@@ -144,7 +144,7 @@ export async function PUT(request: NextRequest) {
         await prisma.payment.update({
           where: { id: booking.payment.id },
           data: {
-            paymentStatus,
+            status: paymentStatus,
             ...(refundAmount && { refundAmount, refundedAt: new Date() })
           }
         });

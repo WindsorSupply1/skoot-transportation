@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
             gte: startOfToday,
             lt: endOfToday
           },
-          bookingStatus: {
+          status: {
             in: ['PENDING', 'CONFIRMED']
           }
         }
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
             gte: startOfToday,
             lt: endOfToday
           },
-          paymentStatus: 'PAID'
+          status: 'PAID'
         },
         _sum: {
           totalAmount: true
@@ -79,10 +79,7 @@ export async function GET(request: NextRequest) {
       // Pending payments
       const pendingPayments = await prisma.booking.count({
         where: {
-          paymentStatus: 'PENDING',
-          bookingStatus: {
-            in: ['PENDING', 'CONFIRMED']
-          }
+          status: 'PENDING'
         }
       });
 

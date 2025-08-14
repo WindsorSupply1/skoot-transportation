@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       const revenueData = await prisma.booking.groupBy({
         by: ['createdAt'],
         where: {
-          paymentStatus: 'PAID',
+          status: 'PAID',
           createdAt: {
             gte: start,
             lte: end
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       const customerTypeBreakdown = await prisma.booking.groupBy({
         by: ['customerType'],
         where: {
-          paymentStatus: 'PAID',
+          status: 'PAID',
           createdAt: {
             gte: start,
             lte: end
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       // Route performance
       const routePerformance = await prisma.booking.findMany({
         where: {
-          paymentStatus: 'PAID',
+          status: 'PAID',
           createdAt: {
             gte: start,
             lte: end
@@ -101,7 +101,7 @@ export async function GET(request: NextRequest) {
       // Peak times analysis
       const peakTimesData = await prisma.booking.findMany({
         where: {
-          paymentStatus: 'PAID',
+          status: 'PAID',
           createdAt: {
             gte: start,
             lte: end
