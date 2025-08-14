@@ -70,14 +70,18 @@ export async function GET(request: NextRequest) {
           }
         },
         include: {
-          _count: {
-            select: { passengers: true }
+          bookings: {
+            select: {
+              passengerCount: true
+            }
           }
         }
       });
 
       const totalCapacity = upcomingDeparturesWithBookings.reduce((sum, dep) => sum + dep.capacity, 0);
-      const totalBooked = upcomingDeparturesWithBookings.reduce((sum, dep) => sum + dep._count.passengers, 0);
+      const totalBooked = upcomingDeparturesWithBookings.reduce((sum, dep) => {
+        return sum + dep.bookings.reduce((bookingSum, booking) => bookingSum + booking.passengerCount, 0);
+      }, 0);
       const occupancyRate = totalCapacity > 0 ? Math.round((totalBooked / totalCapacity) * 100) : 0;
 
       // Pending payments
