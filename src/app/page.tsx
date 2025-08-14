@@ -1,488 +1,752 @@
 'use client';
 
-import React, { useState } from 'react';
-import { 
-  MapPin, 
-  Clock, 
-  Phone, 
-  Mail, 
-  Users,
-  DollarSign,
-  CheckCircle,
-  Star,
-  ChevronDown,
-  ChevronUp,
-  Calendar,
-  Shield,
-  Wifi,
-  Car
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Phone, Mail } from 'lucide-react';
 
 export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [showHeaderBooking, setShowHeaderBooking] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [bookingRef, setBookingRef] = useState('');
+
+  const faqs = [
+    {
+      category: 'booking',
+      question: 'How do I book a ride with Skoot?',
+      answer: 'Booking is easy! Use our online booking form above, select your date, departure time, and number of passengers. Choose your ticket type (first 100, regular, student, military, or round trip). You\'ll receive a confirmation email with your reservation details and pickup instructions within minutes.'
+    },
+    {
+      category: 'booking',
+      question: 'Can I cancel or change my reservation?',
+      answer: 'Yes! You can cancel up to 2 hours before your scheduled departure for a full refund. Changes can be made up to 4 hours before departure for a $5 fee. Cancellations made less than 2 hours before departure are subject to a $5 processing fee.'
+    },
+    {
+      category: 'travel',
+      question: 'Where exactly do you pick up and drop off?',
+      answer: 'We pick up from two convenient locations in Columbia: across from Hotel Trundle downtown and at McDonald\'s on Parklane Road. Drop-off is directly at Charlotte Douglas International Airport terminals.'
+    },
+    {
+      category: 'travel',
+      question: 'How long does the trip take?',
+      answer: 'The total journey takes 100-130 minutes including our 10-minute Rock Hill stop, depending on traffic conditions and time of day. Times are estimates only. We strongly recommend arriving at the airport at least 2 hours before your boarding time.'
+    },
+    {
+      category: 'pricing',
+      question: 'What\'s the difference between pricing tiers?',
+      answer: 'First 100 customers get $31 forever - this rate is locked in permanently once you book. After that, regular rate is $35. Students and military personnel get $32 forever with valid ID. Round trip tickets save you $8 compared to two one-way tickets.'
+    },
+    {
+      category: 'safety',
+      question: 'Are your drivers licensed and insured?',
+      answer: 'Yes, all Skoot drivers hold commercial driver\'s licenses with passenger endorsements, undergo comprehensive background checks and drug testing, and receive regular safety training. We carry $2M in commercial insurance coverage and are fully DOT certified.'
+    }
+  ];
+
+  const filteredFaqs = selectedCategory === 'all' ? faqs : faqs.filter(faq => faq.category === selectedCategory);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
 
-  const faqs = [
-    {
-      question: "What are your operating hours?",
-      answer: "We operate departures at 6:00 AM, 8:00 AM, 10:00 AM, 12:00 PM, 2:00 PM, 6:00 PM, and 8:00 PM, 7 days a week."
-    },
-    {
-      question: "How long does the trip take?",
-      answer: "The journey from Columbia to Charlotte Airport takes approximately 100-130 minutes, including a 10-minute stop in Rock Hill."
-    },
-    {
-      question: "What are your pickup locations?",
-      answer: "We pick up from two convenient locations in Columbia: across from Hotel Trundle downtown and at McDonald's on Parklane Road."
-    },
-    {
-      question: "How much does it cost?",
-      answer: "Regular adult fare is $35. Students and military personnel pay $32 with valid ID. Our first 100 customers get a lifetime rate of $31."
-    },
-    {
-      question: "Can I bring luggage?",
-      answer: "Yes! Standard luggage is included. Extra bags are $5 each. We accommodate standard airline luggage sizes."
-    },
-    {
-      question: "Are pets allowed?",
-      answer: "Yes, we welcome pets for an additional $10 fee. Pets must be in carriers or on leash and well-behaved."
+  const updateAvailability = (timeSelect: HTMLSelectElement, indicator: HTMLElement) => {
+    const selectedTime = timeSelect.value;
+    if (!selectedTime) {
+      indicator.textContent = '';
+      return;
     }
-  ];
+    
+    const popularTimes = ['2:00 PM', '6:00 PM'];
+    const limitedTimes = ['8:00 AM', '8:00 PM'];
+    
+    if (popularTimes.includes(selectedTime)) {
+      indicator.textContent = '⚡ Popular time - 3 seats left';
+      indicator.style.color = '#FF6600';
+    } else if (limitedTimes.includes(selectedTime)) {
+      indicator.textContent = '✅ 8 seats available';
+      indicator.style.color = '#28A745';
+    } else {
+      indicator.textContent = '✅ 12 seats available';
+      indicator.style.color = '#28A745';
+    }
+  };
+
+  const handleBookingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const ref = '#SK' + Date.now().toString().slice(-6);
+    setBookingRef(ref);
+    setShowModal(true);
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 800) {
+        setShowHeaderBooking(true);
+      } else {
+        setShowHeaderBooking(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-sm border-b border-gray-100 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="text-2xl font-bold text-orange-600">SKOOT</div>
+    <>
+      <style jsx global>{`
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        body {
+          font-family: 'Arial', sans-serif;
+          line-height: 1.6;
+          color: #333333;
+          overflow-x: hidden;
+        }
+
+        .header-booking {
+          position: fixed;
+          top: 0;
+          width: 100%;
+          background: rgba(255, 255, 255, 0.98);
+          backdrop-filter: blur(15px);
+          z-index: 1002;
+          box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+          border-bottom: 3px solid #FF6600;
+          transform: translateY(-100%);
+          transition: transform 0.3s ease;
+        }
+        
+        .header-booking.show {
+          transform: translateY(0);
+        }
+
+        .navbar {
+          position: fixed;
+          top: 0;
+          width: 100%;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
+          padding: 15px 0;
+          z-index: 1000;
+          transition: all 0.3s ease;
+          border-bottom: 1px solid rgba(192, 192, 192, 0.2);
+        }
+
+        .navbar.hidden {
+          transform: translateY(-100%);
+        }
+
+        .promo-banner {
+          background: linear-gradient(135deg, #FF6600 0%, #CC5200 100%);
+          color: white;
+          text-align: center;
+          padding: 12px;
+          margin-top: 70px;
+          font-weight: bold;
+          animation: bannerPulse 2s infinite;
+        }
+
+        @keyframes bannerPulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.9; }
+        }
+
+        .hero {
+          background: linear-gradient(135deg, #F5F5F5 0%, #E8E8E8 50%, #C0C0C0 100%);
+          min-height: 90vh;
+          display: flex;
+          align-items: center;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .hero::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 40%;
+          height: 100%;
+          background: linear-gradient(45deg, transparent 30%, rgba(255, 102, 0, 0.1) 100%);
+          z-index: 1;
+        }
+
+        .booking-widget {
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(15px);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+          border: 1px solid rgba(255, 102, 0, 0.2);
+        }
+
+        .schedule-card {
+          background: #F5F5F5;
+          padding: 40px;
+          border-radius: 15px;
+          text-align: center;
+          transition: all 0.3s ease;
+          border: 2px solid transparent;
+        }
+
+        .schedule-card:hover {
+          transform: translateY(-10px);
+          border-color: #FF6600;
+          box-shadow: 0 15px 30px rgba(255, 102, 0, 0.1);
+        }
+
+        .pricing-card {
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
+          padding: 40px;
+          border-radius: 15px;
+          text-align: center;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+          transition: all 0.3s ease;
+          border: 3px solid transparent;
+        }
+
+        .pricing-card:hover {
+          transform: translateY(-10px);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .pricing-card.featured {
+          border-color: #FF6600;
+          background: linear-gradient(135deg, #FFF5F0 0%, #FFEBE0 100%);
+          transform: scale(1.05);
+          position: relative;
+        }
+
+        .pricing-card.featured::before {
+          content: 'LIMITED TIME';
+          position: absolute;
+          top: -10px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: #FF6600;
+          color: white;
+          padding: 5px 20px;
+          border-radius: 20px;
+          font-size: 0.8em;
+          font-weight: bold;
+        }
+
+        .faq-item {
+          margin-bottom: 15px;
+          border: 1px solid #e5e7eb;
+          border-radius: 12px;
+          overflow: hidden;
+          transition: all 0.3s ease;
+        }
+
+        .faq-item:hover {
+          box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .faq-question {
+          padding: 20px 25px;
+          cursor: pointer;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: white;
+          transition: all 0.3s ease;
+          font-weight: 500;
+          color: #1f2937;
+        }
+
+        .faq-question:hover {
+          background: #f9fafb;
+        }
+
+        .faq-item.active .faq-question {
+          background: #f3f4f6;
+          color: #FF6600;
+        }
+
+        .faq-answer {
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.4s ease, padding 0.4s ease;
+          background: #fafafa;
+        }
+
+        .faq-item.active .faq-answer {
+          max-height: 300px;
+          padding: 20px 25px;
+        }
+
+        .sticky-book-btn {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background: linear-gradient(135deg, #28A745 0%, #218838 100%);
+          color: white;
+          padding: 15px 25px;
+          border-radius: 50px;
+          text-decoration: none;
+          font-weight: bold;
+          z-index: 1001;
+          box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+          transition: all 0.3s ease;
+          animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+
+        .modal {
+          display: ${showModal ? 'block' : 'none'};
+          position: fixed;
+          z-index: 2000;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.5);
+          backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+          background-color: white;
+          margin: 5% auto;
+          padding: 40px;
+          border-radius: 20px;
+          width: 90%;
+          max-width: 500px;
+          position: relative;
+          animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(-50px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @media (max-width: 768px) {
+          .hero-container {
+            grid-template-columns: 1fr;
+            gap: 40px;
+            text-align: center;
+          }
+          
+          .hero-content h1 {
+            font-size: 2.5em;
+          }
+        }
+      `}</style>
+
+      {/* Header Booking Widget */}
+      <div className={`header-booking ${showHeaderBooking ? 'show' : ''}`}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '15px 20px', display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '20px', alignItems: 'center' }}>
+          <div style={{ fontSize: '1.5em', fontWeight: 'bold', color: '#FF6600' }}>SKOOT</div>
+          <form style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr) auto', gap: '15px', alignItems: 'end' }}>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontSize: '0.8em', fontWeight: 'bold', color: '#666', marginBottom: '5px' }}>Date</label>
+              <input type="date" style={{ padding: '10px', border: '2px solid #E8E8E8', borderRadius: '8px', fontSize: '14px' }} required />
             </div>
-            <div className="hidden md:flex space-x-8">
-              <a href="#schedule" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Schedule</a>
-              <a href="#pricing" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Pricing</a>
-              <a href="#about" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">About</a>
-              <a href="#contact" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Contact</a>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontSize: '0.8em', fontWeight: 'bold', color: '#666', marginBottom: '5px' }}>Time</label>
+              <select style={{ padding: '10px', border: '2px solid #E8E8E8', borderRadius: '8px', fontSize: '14px' }} required>
+                <option value="">Select</option>
+                <option value="6:00 AM">6:00 AM</option>
+                <option value="8:00 AM">8:00 AM</option>
+                <option value="10:00 AM">10:00 AM</option>
+                <option value="12:00 PM">12:00 PM</option>
+                <option value="2:00 PM">2:00 PM</option>
+                <option value="6:00 PM">6:00 PM</option>
+                <option value="8:00 PM">8:00 PM</option>
+              </select>
             </div>
-            <div className="flex items-center">
-              <a 
-                href="tel:+1-803-SKOOT-SC" 
-                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                Book Now
-              </a>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontSize: '0.8em', fontWeight: 'bold', color: '#666', marginBottom: '5px' }}>Passengers</label>
+              <select style={{ padding: '10px', border: '2px solid #E8E8E8', borderRadius: '8px', fontSize: '14px' }} required>
+                <option value="">Select</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5+">5+</option>
+              </select>
             </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <label style={{ fontSize: '0.8em', fontWeight: 'bold', color: '#666', marginBottom: '5px' }}>Rate</label>
+              <select style={{ padding: '10px', border: '2px solid #E8E8E8', borderRadius: '8px', fontSize: '14px' }} required>
+                <option value="">Select Rate</option>
+                <option value="firsthundred">First 100 - $31</option>
+                <option value="regular">Regular - $35</option>
+                <option value="student">Student - $32</option>
+                <option value="military">Military - $32</option>
+              </select>
+            </div>
+            <button type="submit" style={{ background: 'linear-gradient(135deg, #28A745 0%, #218838 100%)', color: 'white', padding: '12px 20px', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              Book Now
+            </button>
+          </form>
+          <div style={{ fontSize: '0.9em', color: '#666' }}>
+            <strong>550+</strong> Happy Customers
           </div>
+        </div>
+      </div>
+
+      {/* Sticky Book Now Button */}
+      <a href="#book" className="sticky-book-btn">Book Now - Starting $31</a>
+
+      {/* Navigation */}
+      <nav className={`navbar ${showHeaderBooking ? 'hidden' : ''}`}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <a href="#" style={{ fontSize: '2em', fontWeight: 'bold', color: '#FF6600', textDecoration: 'none' }}>SKOOT</a>
+          <ul style={{ display: 'flex', listStyle: 'none', gap: '30px' }}>
+            <li><a href="#home" style={{ textDecoration: 'none', color: '#333333', fontWeight: '500' }}>Home</a></li>
+            <li><a href="#schedule" style={{ textDecoration: 'none', color: '#333333', fontWeight: '500' }}>Schedule</a></li>
+            <li><a href="#pricing" style={{ textDecoration: 'none', color: '#333333', fontWeight: '500' }}>Pricing</a></li>
+            <li><a href="#faq" style={{ textDecoration: 'none', color: '#333333', fontWeight: '500' }}>FAQ</a></li>
+          </ul>
+          <a href="#book" style={{ background: '#28A745', color: 'white', padding: '12px 24px', borderRadius: '25px', textDecoration: 'none', fontWeight: 'bold' }}>Book Now</a>
         </div>
       </nav>
 
       {/* Promo Banner */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2 mt-16">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-sm font-medium">🎉 First 100 customers get lifetime $31 pricing! Book today!</p>
-        </div>
+      <div className="promo-banner">
+        🎉 First 100 Customers Lock in $31 Rate FOREVER! After that: Regular $35, Student/Military $32 🎉
       </div>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-gray-50 to-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6">
-              Columbia to<br />
-              <span className="text-orange-600">Charlotte Airport</span>
+      <section className="hero" id="home">
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '60px', alignItems: 'center', zIndex: 2, position: 'relative' }}>
+          <div>
+            <h1 style={{ fontSize: '3.5em', color: '#333333', marginBottom: '20px', lineHeight: '1.2' }}>
+              Columbia to <span style={{ color: '#FF6600', fontWeight: 'bold' }}>Charlotte Airport</span>
             </h1>
-            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Professional shuttle service • Every 2 hours • 7 days a week
+            <p style={{ fontSize: '1.4em', color: '#666666', marginBottom: '30px' }}>
+              Reliable shuttle service every even hour - starting at just $31
             </p>
-          </div>
-
-          {/* Booking Widget */}
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Book Your Trip</h2>
-              
-              <div className="grid md:grid-cols-2 gap-8 mb-8">
-                {/* Schedule */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <Clock className="w-5 h-5 mr-2 text-orange-600" />
-                    Daily Departures
-                  </h3>
-                  <div className="space-y-2">
-                    {['6:00 AM', '8:00 AM', '10:00 AM', '12:00 PM', '2:00 PM', '6:00 PM', '8:00 PM'].map((time) => (
-                      <div key={time} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer">
-                        <span className="font-medium text-gray-900">{time}</span>
-                        <span className="text-green-600 text-sm font-medium">Available</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Pickup Locations */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                    <MapPin className="w-5 h-5 mr-2 text-orange-600" />
-                    Pickup Locations
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="p-4 bg-gray-50 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer">
-                      <div className="font-medium text-gray-900">Downtown Columbia</div>
-                      <div className="text-sm text-gray-600">Across from Hotel Trundle</div>
-                      <div className="text-xs text-gray-500">1224 Taylor St area</div>
-                    </div>
-                    <div className="p-4 bg-gray-50 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer">
-                      <div className="font-medium text-gray-900">Parklane Road</div>
-                      <div className="text-sm text-gray-600">McDonald's parking area</div>
-                      <div className="text-xs text-gray-500">Parklane Rd, Columbia</div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="text-sm text-blue-800">
-                      <strong>Destination:</strong> Charlotte Douglas Int'l Airport (CLT)<br />
-                      <strong>Stop:</strong> 10-minute break in Rock Hill
-                    </div>
-                  </div>
-                </div>
+            
+            <div style={{ display: 'flex', gap: '30px', marginBottom: '40px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '24px', height: '24px', background: '#FF6600', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>⏰</div>
+                <span>Every Even Hour</span>
               </div>
-
-              {/* Booking Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a 
-                  href="tel:+1-803-SKOOT-SC" 
-                  className="flex items-center justify-center bg-orange-600 hover:bg-orange-700 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors shadow-lg"
-                >
-                  <Phone className="w-5 h-5 mr-2" />
-                  Call to Book: +1-803-SKOOT-SC
-                </a>
-                <a 
-                  href="mailto:hello@skoot.bike?subject=Booking Request&body=I would like to book a trip from Columbia to Charlotte Airport." 
-                  className="flex items-center justify-center bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors shadow-lg"
-                >
-                  <Mail className="w-5 h-5 mr-2" />
-                  Email: hello@skoot.bike
-                </a>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '24px', height: '24px', background: '#FF6600', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>💰</div>
+                <span>Starting $31</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '24px', height: '24px', background: '#FF6600', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>🛡️</div>
+                <span>Safe & Reliable</span>
               </div>
             </div>
+          </div>
+          
+          <div className="booking-widget" id="book">
+            <h3 style={{ color: '#FF6600', marginBottom: '25px', fontSize: '1.5em', textAlign: 'center' }}>Reserve Your Seat</h3>
+            <form onSubmit={handleBookingSubmit} style={{ display: 'grid', gap: '20px' }}>
+              <div>
+                <label style={{ marginBottom: '8px', fontWeight: 'bold', color: '#333333', display: 'block' }}>Travel Date</label>
+                <input type="date" style={{ padding: '15px', border: '2px solid #E8E8E8', borderRadius: '10px', fontSize: '16px', width: '100%' }} required />
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                <div>
+                  <label style={{ marginBottom: '8px', fontWeight: 'bold', color: '#333333', display: 'block' }}>Departure Time</label>
+                  <select style={{ padding: '15px', border: '2px solid #E8E8E8', borderRadius: '10px', fontSize: '16px', width: '100%' }} required>
+                    <option value="">Select Time</option>
+                    <option value="6:00 AM">6:00 AM</option>
+                    <option value="8:00 AM">8:00 AM</option>
+                    <option value="10:00 AM">10:00 AM</option>
+                    <option value="12:00 PM">12:00 PM</option>
+                    <option value="2:00 PM">2:00 PM</option>
+                    <option value="6:00 PM">6:00 PM</option>
+                    <option value="8:00 PM">8:00 PM</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label style={{ marginBottom: '8px', fontWeight: 'bold', color: '#333333', display: 'block' }}>Passengers</label>
+                  <select style={{ padding: '15px', border: '2px solid #E8E8E8', borderRadius: '10px', fontSize: '16px', width: '100%' }} required>
+                    <option value="">Select</option>
+                    <option value="1">1 Passenger</option>
+                    <option value="2">2 Passengers</option>
+                    <option value="3">3 Passengers</option>
+                    <option value="4">4 Passengers</option>
+                    <option value="5+">5+ Passengers</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label style={{ marginBottom: '8px', fontWeight: 'bold', color: '#333333', display: 'block' }}>Ticket Type</label>
+                <select style={{ padding: '15px', border: '2px solid #E8E8E8', borderRadius: '10px', fontSize: '16px', width: '100%' }} required>
+                  <option value="">Select Rate</option>
+                  <option value="firsthundred">First 100 Rate - $31 (Limited Time!)</option>
+                  <option value="regular">Regular Rate - $35</option>
+                  <option value="student">Student Rate - $32 (Forever!)</option>
+                  <option value="military">Military Rate - $32 (Forever!)</option>
+                  <option value="roundtrip">Round Trip - $62 (Save $8)</option>
+                </select>
+              </div>
+              
+              <button type="submit" style={{ background: 'linear-gradient(135deg, #28A745 0%, #218838 100%)', color: 'white', padding: '18px', border: 'none', borderRadius: '10px', fontSize: '1.2em', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px' }}>
+                Reserve My Seat - $31
+              </button>
+            </form>
           </div>
         </div>
       </section>
 
-      {/* Value Propositions */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose Skoot?</h2>
-            <p className="text-xl text-gray-600">Professional transportation you can count on</p>
+      {/* Schedule Section */}
+      <section style={{ padding: '80px 0', background: 'white' }} id="schedule">
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+            <h2 style={{ fontSize: '2.5em', color: '#333333', marginBottom: '15px' }}>Daily Schedule & Estimated Arrivals</h2>
+            <p style={{ fontSize: '1.2em', color: '#666666' }}>Columbia departures with estimated CLT arrival times (includes Rock Hill stop)</p>
           </div>
-
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="text-center group">
-              <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-200 transition-colors">
-                <Clock className="h-8 w-8 text-orange-600" />
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px', marginTop: '40px' }}>
+            <div className="schedule-card">
+              <h3 style={{ color: '#FF6600', marginBottom: '15px', fontSize: '1.5em' }}>Morning Departures</h3>
+              <p>Early departure times</p>
+              <div style={{ display: 'grid', gap: '10px', margin: '20px 0' }}>
+                <div style={{ background: 'white', padding: '15px', borderRadius: '8px', fontWeight: 'bold', color: '#333', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>6:00 AM Departure</span>
+                  <span style={{ fontSize: '0.9em', color: '#666', fontWeight: 'normal' }}>Arrives ~7:45-8:20 AM</span>
+                </div>
+                <div style={{ background: 'white', padding: '15px', borderRadius: '8px', fontWeight: 'bold', color: '#333', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>8:00 AM Departure</span>
+                  <span style={{ fontSize: '0.9em', color: '#666', fontWeight: 'normal' }}>Arrives ~9:45-10:20 AM</span>
+                </div>
+                <div style={{ background: 'white', padding: '15px', borderRadius: '8px', fontWeight: 'bold', color: '#333', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>10:00 AM Departure</span>
+                  <span style={{ fontSize: '0.9em', color: '#666', fontWeight: 'normal' }}>Arrives ~11:45 AM-12:20 PM</span>
+                </div>
+                <div style={{ background: 'white', padding: '15px', borderRadius: '8px', fontWeight: 'bold', color: '#333', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>12:00 PM Departure</span>
+                  <span style={{ fontSize: '0.9em', color: '#666', fontWeight: 'normal' }}>Arrives ~1:45-2:20 PM</span>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Reliable Schedule</h3>
-              <p className="text-gray-600">Every 2 hours, 7 days a week. No cancellations.</p>
             </div>
-
-            <div className="text-center group">
-              <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-200 transition-colors">
-                <Car className="h-8 w-8 text-orange-600" />
+            
+            <div className="schedule-card">
+              <h3 style={{ color: '#FF6600', marginBottom: '15px', fontSize: '1.5em' }}>Evening Departures</h3>
+              <p>Afternoon & evening times</p>
+              <div style={{ display: 'grid', gap: '10px', margin: '20px 0' }}>
+                <div style={{ background: 'white', padding: '15px', borderRadius: '8px', fontWeight: 'bold', color: '#333', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>2:00 PM Departure</span>
+                  <span style={{ fontSize: '0.9em', color: '#666', fontWeight: 'normal' }}>Arrives ~3:45-4:20 PM</span>
+                </div>
+                <div style={{ background: 'white', padding: '15px', borderRadius: '8px', fontWeight: 'bold', color: '#333', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>6:00 PM Departure</span>
+                  <span style={{ fontSize: '0.9em', color: '#666', fontWeight: 'normal' }}>Arrives ~7:45-8:20 PM</span>
+                </div>
+                <div style={{ background: 'white', padding: '15px', borderRadius: '8px', fontWeight: 'bold', color: '#333', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>8:00 PM Departure</span>
+                  <span style={{ fontSize: '0.9em', color: '#666', fontWeight: 'normal' }}>Arrives ~9:45-10:20 PM</span>
+                </div>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Comfortable Vans</h3>
-              <p className="text-gray-600">15-passenger Mercedes Sprinter vans with AC.</p>
             </div>
-
-            <div className="text-center group">
-              <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-200 transition-colors">
-                <Shield className="h-8 w-8 text-orange-600" />
+            
+            <div className="schedule-card">
+              <h3 style={{ color: '#FF6600', marginBottom: '15px', fontSize: '1.5em' }}>⚠️ Important Reminder</h3>
+              <p style={{ color: '#FF6600', fontWeight: 'bold' }}>Plan Your Flight Accordingly</p>
+              <div style={{ textAlign: 'left', margin: '20px 0', padding: '20px', background: '#FFF5F0', borderRadius: '10px' }}>
+                <ul style={{ listStyle: 'none', padding: 0 }}>
+                  <li style={{ marginBottom: '10px' }}>🚨 <strong>Arrive 2+ hours before boarding time</strong></li>
+                  <li style={{ marginBottom: '10px' }}>🛑 <strong>Includes 10-min Rock Hill stop</strong></li>
+                  <li style={{ marginBottom: '10px' }}>🚦 Traffic + stop can extend travel time</li>
+                  <li style={{ marginBottom: '10px' }}>⏰ Times are estimates, not guarantees</li>
+                  <li>✈️ We recommend earlier shuttles for important flights</li>
+                </ul>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Licensed & Insured</h3>
-              <p className="text-gray-600">Professional drivers, fully licensed and insured.</p>
-            </div>
-
-            <div className="text-center group">
-              <div className="bg-orange-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-orange-200 transition-colors">
-                <DollarSign className="h-8 w-8 text-orange-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Great Value</h3>
-              <p className="text-gray-600">From $31. No hidden fees or surprises.</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-xl text-gray-600">No hidden fees. No surprises. Just reliable transportation.</p>
+      <section style={{ padding: '80px 0', background: 'linear-gradient(135deg, #E8E8E8 0%, #C0C0C0 100%)' }} id="pricing">
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+            <h2 style={{ fontSize: '2.5em', color: '#333333', marginBottom: '15px' }}>Simple, Fair Pricing</h2>
+            <p style={{ fontSize: '1.2em', color: '#666666' }}>No surge pricing, no hidden fees</p>
           </div>
-
-          <div className="grid md:grid-cols-4 gap-6 max-w-5xl mx-auto">
-            {/* Legacy Price */}
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 text-white p-6 rounded-2xl shadow-lg transform hover:scale-105 transition-transform">
-              <div className="text-center">
-                <div className="text-sm font-medium mb-2 opacity-90">LEGACY RATE</div>
-                <div className="text-4xl font-bold mb-2">$31</div>
-                <div className="text-sm opacity-90 mb-4">First 100 customers</div>
-                <div className="bg-white/20 px-3 py-1 rounded-full text-xs font-medium">LOCKED FOREVER</div>
-              </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '30px', marginTop: '40px' }}>
+            <div className="pricing-card featured">
+              <h3>First 100 Customers</h3>
+              <div style={{ fontSize: '3em', fontWeight: 'bold', color: '#FF6600', margin: '20px 0' }}>$31</div>
+              <p style={{ color: '#666', marginBottom: '20px', fontWeight: '500' }}>FOREVER - Lock in this rate!</p>
+              <ul style={{ listStyle: 'none', margin: '20px 0' }}>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Reserved seat</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ WiFi & charging ports</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Professional driver</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Up to 2 bags included</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Rate locked permanently</li>
+              </ul>
             </div>
-
-            {/* Student Price */}
-            <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-blue-200 transform hover:scale-105 transition-transform">
-              <div className="text-center">
-                <div className="text-sm font-medium text-blue-600 mb-2">STUDENT</div>
-                <div className="text-4xl font-bold text-gray-900 mb-2">$32</div>
-                <div className="text-sm text-gray-600 mb-4">With valid student ID</div>
-                <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">USC & LOCAL</div>
-              </div>
+            
+            <div className="pricing-card">
+              <h3>Regular Rate</h3>
+              <div style={{ fontSize: '3em', fontWeight: 'bold', color: '#FF6600', margin: '20px 0' }}>$35</div>
+              <p style={{ color: '#666', marginBottom: '20px', fontWeight: '500' }}>Per person, one way</p>
+              <ul style={{ listStyle: 'none', margin: '20px 0' }}>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Reserved seat</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ WiFi & charging ports</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Professional driver</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Up to 2 bags included</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Door-to-terminal service</li>
+              </ul>
             </div>
-
-            {/* Military Price */}
-            <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-green-200 transform hover:scale-105 transition-transform">
-              <div className="text-center">
-                <div className="text-sm font-medium text-green-600 mb-2">MILITARY</div>
-                <div className="text-4xl font-bold text-gray-900 mb-2">$32</div>
-                <div className="text-sm text-gray-600 mb-4">With military ID</div>
-                <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">FORT JACKSON</div>
-              </div>
+            
+            <div className="pricing-card">
+              <h3>Student & Military</h3>
+              <div style={{ fontSize: '3em', fontWeight: 'bold', color: '#FF6600', margin: '20px 0' }}>$32</div>
+              <p style={{ color: '#666', marginBottom: '20px', fontWeight: '500' }}>With valid ID - Forever rate!</p>
+              <ul style={{ listStyle: 'none', margin: '20px 0' }}>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Same great service</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Valid student/military ID</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Rate locked permanently</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ No expiration date</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Transferable to family</li>
+              </ul>
             </div>
-
-            {/* Regular Price */}
-            <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-gray-200 transform hover:scale-105 transition-transform">
-              <div className="text-center">
-                <div className="text-sm font-medium text-gray-600 mb-2">REGULAR</div>
-                <div className="text-4xl font-bold text-gray-900 mb-2">$35</div>
-                <div className="text-sm text-gray-600 mb-4">Standard fare</div>
-                <div className="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-xs font-medium">ONE WAY</div>
-              </div>
+            
+            <div className="pricing-card">
+              <h3>Round Trip</h3>
+              <div style={{ fontSize: '3em', fontWeight: 'bold', color: '#FF6600', margin: '20px 0' }}>$62</div>
+              <p style={{ color: '#666', marginBottom: '20px', fontWeight: '500' }}>Save $8 on return</p>
+              <ul style={{ listStyle: 'none', margin: '20px 0' }}>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Flexible return date</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Valid for 30 days</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Any available departure</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Best value option</li>
+                <li style={{ padding: '8px 0', color: '#333' }}>✓ Change return for $5</li>
+              </ul>
             </div>
-          </div>
-
-          {/* Add-ons */}
-          <div className="mt-12 max-w-2xl mx-auto">
-            <div className="bg-white p-6 rounded-2xl shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Add-On Services</h3>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-gray-700">Extra luggage (per bag)</span>
-                  <span className="font-semibold text-gray-900">$5</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-gray-700">Pet transport</span>
-                  <span className="font-semibold text-gray-900">$10</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
-            <div className="flex justify-center items-center mb-4">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-6 h-6 text-yellow-400 fill-current" />
-              ))}
-              <span className="ml-2 text-gray-600">4.9/5 from 150+ reviews</span>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-gray-50 p-8 rounded-2xl">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-700 mb-6 italic">"Perfect for my weekly business trips to Charlotte. The drivers are professional and the schedule is incredibly reliable. Never had a delay!"</p>
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-orange-200 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-orange-700 font-semibold">JL</span>
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-900">John Lewis</div>
-                  <div className="text-sm text-gray-600">Business Executive</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 p-8 rounded-2xl">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-700 mb-6 italic">"Much better than driving myself and paying for airport parking. The student discount makes it very affordable. Highly recommend!"</p>
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-blue-700 font-semibold">SM</span>
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-900">Sarah Martinez</div>
-                  <div className="text-sm text-gray-600">USC Student</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 p-8 rounded-2xl">
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              <p className="text-gray-700 mb-6 italic">"Reliable transportation from Fort Jackson to CLT. The military discount is appreciated and the service is always on time. Great value!"</p>
-              <div className="flex items-center">
-                <div className="w-12 h-12 bg-green-200 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-green-700 font-semibold">MW</span>
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-900">Mike Wilson</div>
-                  <div className="text-sm text-gray-600">Army Officer</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Early Bird CTA */}
-      <section className="py-20 bg-gradient-to-r from-orange-500 to-orange-600">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">Ready to Book Your Trip?</h2>
-          <p className="text-xl text-orange-100 mb-8">Join the hundreds of satisfied customers who trust Skoot Transportation</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a 
-              href="tel:+1-803-SKOOT-SC" 
-              className="bg-white text-orange-600 hover:bg-gray-100 px-8 py-4 rounded-xl font-semibold text-lg transition-colors shadow-lg"
-            >
-              Call +1-803-SKOOT-SC
-            </a>
-            <a 
-              href="mailto:hello@skoot.bike?subject=Booking Request&body=I would like to book a trip from Columbia to Charlotte Airport." 
-              className="bg-orange-700 hover:bg-orange-800 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-colors shadow-lg"
-            >
-              Email hello@skoot.bike
-            </a>
           </div>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
-            <p className="text-xl text-gray-600">Everything you need to know about our service</p>
+      <section style={{ padding: '80px 0', background: 'white' }} id="faq">
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+            <h2 style={{ fontSize: '2.5em', color: '#333333', marginBottom: '15px' }}>Frequently Asked Questions</h2>
+            <p style={{ fontSize: '1.2em', color: '#666666' }}>Everything you need to know about Skoot</p>
           </div>
-
-          <div className="space-y-4">
-            {faqs.map((faq, index) => (
-              <div key={index} className="bg-white rounded-2xl shadow-lg border border-gray-100">
-                <button
-                  className="w-full px-8 py-6 text-left flex justify-between items-center hover:bg-gray-50 rounded-2xl transition-colors"
-                  onClick={() => toggleFaq(index)}
-                >
-                  <span className="font-semibold text-gray-900 text-lg">{faq.question}</span>
-                  {openFaq === index ? (
-                    <ChevronUp className="w-6 h-6 text-orange-600" />
-                  ) : (
-                    <ChevronDown className="w-6 h-6 text-orange-600" />
-                  )}
-                </button>
-                {openFaq === index && (
-                  <div className="px-8 pb-6">
-                    <p className="text-gray-600 text-lg leading-relaxed">{faq.answer}</p>
-                  </div>
-                )}
+          
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '40px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            {['all', 'booking', 'travel', 'pricing', 'safety'].map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(category)}
+                style={{
+                  padding: '8px 20px',
+                  border: '2px solid #FF6600',
+                  background: selectedCategory === category ? '#FF6600' : 'white',
+                  color: selectedCategory === category ? 'white' : '#FF6600',
+                  borderRadius: '25px',
+                  cursor: 'pointer',
+                  fontSize: '0.95em',
+                  fontWeight: '500',
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </button>
+            ))}
+          </div>
+          
+          <div>
+            {filteredFaqs.map((faq, index) => (
+              <div key={index} className={`faq-item ${openFaq === index ? 'active' : ''}`}>
+                <div className="faq-question" onClick={() => toggleFaq(index)}>
+                  <span>{faq.question}</span>
+                  <span style={{ fontSize: '1.5em', color: '#FF6600', transition: 'transform 0.3s ease', transform: openFaq === index ? 'rotate(45deg)' : 'rotate(0deg)' }}>+</span>
+                </div>
+                <div className="faq-answer">
+                  <p style={{ color: '#4b5563', lineHeight: '1.7' }}>{faq.answer}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* Early Bird CTA */}
+      <section style={{ padding: '80px 0', background: 'linear-gradient(135deg, #FF6600 0%, #CC5200 100%)', color: 'white', textAlign: 'center' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+          <h2 style={{ fontSize: '2.5em', marginBottom: '20px' }}>First 100 Customers Special</h2>
+          <p style={{ fontSize: '1.2em', marginBottom: '30px', opacity: 0.9 }}>Lock in the $31 rate forever! Join our founding members and never pay more.</p>
+          <a href="#book" style={{ background: 'white', color: '#FF6600', padding: '18px 40px', border: 'none', borderRadius: '30px', fontSize: '1.2em', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'none', display: 'inline-block', transition: 'all 0.3s ease' }}>
+            Secure Your Spot
+          </a>
+        </div>
+      </section>
+
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="md:col-span-2">
-              <div className="text-3xl font-bold text-orange-500 mb-4">SKOOT</div>
-              <p className="text-gray-300 mb-6 text-lg leading-relaxed">
-                Professional shuttle service from Columbia, SC to Charlotte Douglas International Airport. 
-                Reliable, comfortable, and affordable transportation you can count on.
-              </p>
-              <div className="flex space-x-4">
-                <a 
-                  href="tel:+1-803-SKOOT-SC" 
-                  className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-                >
-                  Call Now
-                </a>
-                <a 
-                  href="mailto:hello@skoot.bike" 
-                  className="border border-gray-600 hover:border-gray-500 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-                >
-                  Email Us
-                </a>
-              </div>
-            </div>
-
+      <footer style={{ background: '#333333', color: 'white', padding: '40px 0', textAlign: 'center' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '40px', marginBottom: '30px' }}>
             <div>
-              <h4 className="font-semibold text-lg mb-4">Schedule</h4>
-              <div className="text-gray-300 space-y-2">
-                <p>Every day of the week:</p>
-                <p className="text-sm">6AM • 8AM • 10AM • 12PM</p>
-                <p className="text-sm">2PM • 6PM • 8PM</p>
-                <p className="mt-3 text-sm">Journey: 100-130 minutes</p>
-                <p className="text-sm">Includes Rock Hill stop</p>
-              </div>
+              <h3 style={{ color: '#FF6600', marginBottom: '15px' }}>Contact Info</h3>
+              <p style={{ color: '#C0C0C0', marginBottom: '5px' }}>📞 +1-803-SKOOT-SC</p>
+              <p style={{ color: '#C0C0C0', marginBottom: '5px' }}>✉️ hello@skoot.bike</p>
+              <p style={{ color: '#C0C0C0', marginBottom: '5px' }}>🕐 Customer Service: 6am-10pm</p>
             </div>
-
+            
             <div>
-              <h4 className="font-semibold text-lg mb-4">Locations</h4>
-              <div className="text-gray-300 space-y-3">
-                <div>
-                  <p className="font-medium">Downtown Columbia</p>
-                  <p className="text-sm">Across from Hotel Trundle</p>
-                </div>
-                <div>
-                  <p className="font-medium">Parklane Road</p>
-                  <p className="text-sm">McDonald's parking area</p>
-                </div>
-                <div className="mt-4">
-                  <p className="font-medium">Destination</p>
-                  <p className="text-sm">Charlotte Douglas Int'l Airport</p>
-                </div>
-              </div>
+              <h3 style={{ color: '#FF6600', marginBottom: '15px' }}>Service Area</h3>
+              <p style={{ color: '#C0C0C0', marginBottom: '5px' }}>Columbia to CLT Airport</p>
+              <p style={{ color: '#C0C0C0', marginBottom: '5px' }}>Downtown Columbia Pickup</p>
+              <p style={{ color: '#C0C0C0', marginBottom: '5px' }}>Parklane Road Pickup</p>
+              <p style={{ color: '#C0C0C0', marginBottom: '5px' }}>Rock Hill Stop (10 min)</p>
+            </div>
+            
+            <div>
+              <h3 style={{ color: '#FF6600', marginBottom: '15px' }}>Quick Links</h3>
+              <a href="#schedule" style={{ color: '#C0C0C0', textDecoration: 'none', marginBottom: '5px', display: 'block' }}>Schedule</a>
+              <a href="#pricing" style={{ color: '#C0C0C0', textDecoration: 'none', marginBottom: '5px', display: 'block' }}>Pricing</a>
+              <a href="#book" style={{ color: '#C0C0C0', textDecoration: 'none', marginBottom: '5px', display: 'block' }}>Book Now</a>
+              <a href="#faq" style={{ color: '#C0C0C0', textDecoration: 'none', marginBottom: '5px', display: 'block' }}>FAQ</a>
             </div>
           </div>
-
-          <div className="border-t border-gray-800 mt-12 pt-8">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <p className="text-gray-400 text-sm">
-                © 2025 Skoot Transportation. All rights reserved. Licensed and insured shuttle service.
-              </p>
-              <div className="flex items-center mt-4 md:mt-0">
-                <span className="text-gray-400 text-sm mr-4">Contact:</span>
-                <div className="flex items-center space-x-4 text-sm">
-                  <span className="text-gray-300">+1-803-SKOOT-SC</span>
-                  <span className="text-gray-600">•</span>
-                  <span className="text-gray-300">hello@skoot.bike</span>
-                </div>
-              </div>
-            </div>
+          
+          <div style={{ borderTop: '1px solid #666666', paddingTop: '20px', color: '#8C8C8C' }}>
+            <p>&copy; 2025 Skoot Transportation. All rights reserved. Licensed and insured shuttle service.</p>
           </div>
         </div>
       </footer>
-    </div>
+
+      {/* Success Modal */}
+      <div className="modal" onClick={() => setShowModal(false)}>
+        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <span style={{ color: '#aaa', float: 'right', fontSize: '28px', fontWeight: 'bold', cursor: 'pointer', position: 'absolute', top: '15px', right: '20px' }} onClick={() => setShowModal(false)}>&times;</span>
+          <div style={{ textAlign: 'center', fontSize: '4em', color: '#28A745', marginBottom: '20px' }}>✅</div>
+          <h2 style={{ textAlign: 'center', color: '#333', marginBottom: '20px' }}>Booking Confirmed!</h2>
+          <p style={{ textAlign: 'center', color: '#666', lineHeight: '1.6', marginBottom: '30px' }}>
+            Your reservation has been submitted successfully. You'll receive a confirmation email with pickup details and driver contact information within 5 minutes.
+          </p>
+          <p style={{ textAlign: 'center', color: '#666', marginBottom: '30px' }}>
+            <strong>Booking Reference:</strong> <span>{bookingRef}</span>
+          </p>
+          <button onClick={() => setShowModal(false)} style={{ background: '#FF6600', color: 'white', padding: '15px 30px', border: 'none', borderRadius: '25px', fontWeight: 'bold', cursor: 'pointer', display: 'block', margin: '0 auto', transition: 'all 0.3s ease' }}>
+            Great, Thanks!
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
