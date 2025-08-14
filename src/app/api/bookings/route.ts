@@ -69,22 +69,37 @@ export async function POST(request: NextRequest) {
     const discount = isRoundTrip ? Math.round(subtotal * 0.1) : 0;
     const total = isRoundTrip ? (subtotal * 2) - discount : subtotal;
 
+    // Get default pricing tier
+    const defaultPricing = await prisma.pricingTier.findFirst({ where: { isActive: true } });
+    if (!defaultPricing) {
+      return NextResponse.json({ error: 'No pricing available' }, { status: 500 });
+    }
+    
+    // Create temporary guest user
+    const guestUser = await prisma.user.create({
+      data: {
+        email: validatedData.contactInfo.email,
+        firstName: validatedData.passengers[0].firstName,
+        lastName: validatedData.passengers[0].lastName,
+        phone: validatedData.contactInfo.phone,
+        isAdmin: false
+      }
+    });
+    
     // Create booking
     const booking = await prisma.booking.create({
       data: {
+        userId: guestUser.id,
+        routeId: departure.schedule.routeId,
         departureId: validatedData.departureId,
         returnDepartureId: validatedData.returnDepartureId,
         pickupLocationId: validatedData.pickupLocationId,
-        userId: null, // Guest booking
+        dropoffLocationId: validatedData.pickupLocationId,
+        pricingTierId: defaultPricing.id,
         passengerCount: validatedData.passengerCount,
         totalAmount: total,
         status: 'PENDING',
-        status: 'PENDING',
-        customerType: validatedData.customerType,
-        contactEmail: validatedData.contactInfo.email,
-        contactPhone: validatedData.contactInfo.phone,
-        extraLuggage: validatedData.extraLuggage,
-        pets: validatedData.pets,
+        isRoundTrip: isRoundTrip,
         specialRequests: validatedData.specialRequests,
         passengers: {
           create: validatedData.passengers.map((passenger, index) => ({
@@ -92,23 +107,23 @@ export async function POST(request: NextRequest) {
             lastName: passenger.lastName,
             dateOfBirth: passenger.dateOfBirth ? new Date(passenger.dateOfBirth) : null,
             seatNumber: null,
-            checkInStatus: 'NOT_CHECKED_IN',
+            checkedIn: false,
           }))
         }
       },
       include: {
         departure: {
           include: {
-            schedule: { include: { route: true } },
-            pickupLocation: true
+            schedule: { include: { route: true } }
           }
         },
         returnDeparture: {
           include: {
-            schedule: { include: { route: true } },
-            pickupLocation: true
+            schedule: { include: { route: true } }
           }
         },
+        pickupLocation: true,
+        dropoffLocation: true,
         passengers: true,
       }
     });
@@ -117,18 +132,20 @@ export async function POST(request: NextRequest) {
       success: true,
       booking: {
         id: booking.id,
-        confirmationCode: booking.confirmationCode,
+        bookingNumber: booking.bookingNumber,
         totalAmount: booking.totalAmount,
         departure: {
           date: booking.departure.date,
-          departureTime: booking.departure.schedule.departureTime,
-          pickupLocation: booking.departure.pickupLocation?.name,
+          time: booking.departure.schedule.time,
+          route: booking.departure.schedule.route.name,
         },
         returnDeparture: booking.returnDeparture ? {
           date: booking.returnDeparture.date,
-          departureTime: booking.returnDeparture.schedule.departureTime,
-          pickupLocation: booking.returnDeparture.pickupLocation?.name,
+          time: booking.returnDeparture.schedule.time,
+          route: booking.returnDeparture.schedule.route.name,
         } : null,
+        pickupLocation: booking.pickupLocation.name,
+        dropoffLocation: booking.dropoffLocation.name,
         passengers: booking.passengers,
         paymentRequired: booking.totalAmount,
       }
@@ -164,22 +181,25 @@ export async function GET(request: NextRequest) {
 
     const booking = await prisma.booking.findFirst({
       where: {
-        confirmationCode,
-        contactEmail: email,
+        bookingNumber: confirmationCode,
+        user: {
+          email: email
+        }
       },
       include: {
         departure: {
           include: {
-            schedule: { include: { route: true } },
-            pickupLocation: true
+            schedule: { include: { route: true } }
           }
         },
         returnDeparture: {
           include: {
-            schedule: { include: { route: true } },
-            pickupLocation: true
+            schedule: { include: { route: true } }
           }
         },
+        pickupLocation: true,
+        dropoffLocation: true,
+        user: true,
         passengers: true,
         payment: true,
       }

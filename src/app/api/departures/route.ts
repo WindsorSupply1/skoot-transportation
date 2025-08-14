@@ -31,26 +31,21 @@ export async function GET(request: NextRequest) {
       include: {
         schedule: {
           include: {
-            route: {
-              include: {
-                origin: true,
-                destination: true
-              }
-            }
+            route: true
           }
         },
         _count: {
-          select: { passengers: true }
+          select: { bookings: true }
         }
       },
       orderBy: [
         { date: 'asc' },
-        { schedule: { departureTime: 'asc' } }
+        { schedule: { time: 'asc' } }
       ]
     });
 
     const departuresWithAvailability = departures.map(departure => {
-      const bookedSeats = departure._count.passengers;
+      const bookedSeats = departure._count.bookings;
       const availableSeats = departure.capacity - bookedSeats;
       const occupancyRate = (bookedSeats / departure.capacity) * 100;
 
@@ -63,8 +58,7 @@ export async function GET(request: NextRequest) {
       return {
         id: departure.id,
         date: departure.date,
-        departureTime: departure.schedule.departureTime,
-        estimatedArrival: departure.estimatedArrival,
+        time: departure.schedule.time,
         capacity: departure.capacity,
         bookedSeats,
         availableSeats,
@@ -72,12 +66,12 @@ export async function GET(request: NextRequest) {
         route: {
           id: departure.schedule.route.id,
           name: departure.schedule.route.name,
-          origin: departure.schedule.route.origin.name,
-          destination: departure.schedule.route.destination.name,
-          duration: departure.schedule.route.estimatedDuration
+          origin: departure.schedule.route.origin,
+          destination: departure.schedule.route.destination,
+          duration: departure.schedule.route.duration
         },
-        isActive: departure.isActive,
-        notes: departure.notes
+        status: departure.status,
+        driverNotes: departure.driverNotes
       };
     });
 
