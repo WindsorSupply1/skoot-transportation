@@ -54,8 +54,7 @@ export async function GET(request: NextRequest) {
                   include: {
                     route: true
                   }
-                },
-                pickupLocation: true
+                }
               }
             },
             returnDeparture: {
@@ -64,8 +63,7 @@ export async function GET(request: NextRequest) {
                   include: {
                     route: true
                   }
-                },
-                pickupLocation: true
+                }
               }
             },
             passengers: true,
