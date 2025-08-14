@@ -39,7 +39,7 @@ export default function SignInPage() {
         setError('Invalid email or password');
       } else if (result?.ok) {
         const session = await getSession();
-        if (session?.user?.role === 'ADMIN') {
+        if (session?.user?.isAdmin) {
           router.push('/admin');
         } else {
           router.push('/');

@@ -38,10 +38,10 @@ export async function GET(request: NextRequest) {
 
       const todayRevenue = todayRevenueResult._sum.totalAmount || 0;
 
-      // Total customers
+      // Total customers  
       const totalCustomers = await prisma.user.count({
         where: {
-          role: 'CUSTOMER'
+          isAdmin: false
         }
       });
 
