@@ -36,12 +36,7 @@ export async function POST(request: NextRequest) {
       const schedules = await prisma.schedule.findMany({
         where,
         include: {
-          route: {
-            include: {
-              origin: true,
-              destination: true
-            }
-          }
+          route: true
         }
       });
 
