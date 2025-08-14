@@ -63,10 +63,11 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
     // Update payment record
     await prisma.payment.update({
       where: {
-        transactionId: paymentIntent.id
+        bookingId: bookingId
       },
       data: {
         status: 'COMPLETED',
+        transactionId: paymentIntent.id,
         processedAt: new Date(),
       }
     });
@@ -119,10 +120,11 @@ async function handlePaymentFailure(paymentIntent: Stripe.PaymentIntent) {
     // Update payment record
     await prisma.payment.update({
       where: {
-        transactionId: paymentIntent.id
+        bookingId: bookingId
       },
       data: {
         status: 'FAILED',
+        transactionId: paymentIntent.id,
         failureReason: paymentIntent.last_payment_error?.message || 'Payment failed',
       }
     });
@@ -154,10 +156,11 @@ async function handlePaymentCancellation(paymentIntent: Stripe.PaymentIntent) {
     // Update payment record
     await prisma.payment.update({
       where: {
-        transactionId: paymentIntent.id
+        bookingId: bookingId
       },
       data: {
         status: 'FAILED',
+        transactionId: paymentIntent.id,
       }
     });
 
