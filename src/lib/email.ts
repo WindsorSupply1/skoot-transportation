@@ -123,11 +123,11 @@ export async function sendBookingConfirmationEmail(booking: BookingWithDetails) 
     await prisma.emailLog.create({
       data: {
         bookingId: booking.id,
-        recipientEmail: booking.user.email,
-        emailType: 'BOOKING_CONFIRMATION',
+        toEmail: booking.user.email,
+        fromEmail: process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@skoot.bike',
+        subject: `Booking Confirmed - ${booking.bookingNumber} - Skoot Transportation`,
         status: 'SENT',
         sentAt: new Date(),
-        messageId: result.messageId,
       }
     });
 
@@ -141,8 +141,9 @@ export async function sendBookingConfirmationEmail(booking: BookingWithDetails) 
     await prisma.emailLog.create({
       data: {
         bookingId: booking.id,
-        recipientEmail: booking.user.email,
-        emailType: 'BOOKING_CONFIRMATION',
+        toEmail: booking.user.email,
+        fromEmail: process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@skoot.bike',
+        subject: `Booking Confirmed - ${booking.bookingNumber} - Skoot Transportation`,
         status: 'FAILED',
         errorMessage: error instanceof Error ? error.message : 'Unknown error',
       }
@@ -165,8 +166,8 @@ export async function sendPaymentReceiptEmail(booking: BookingWithDetails) {
       throw new Error('Payment receipt email template or payment info not found');
     }
 
-    const paidDate = booking.payment.paidAt 
-      ? new Date(booking.payment.paidAt).toLocaleDateString()
+    const paidDate = booking.payment.processedAt 
+      ? new Date(booking.payment.processedAt).toLocaleDateString()
       : new Date().toLocaleDateString();
 
     let emailBody = emailTemplate.htmlBody;
@@ -199,11 +200,11 @@ export async function sendPaymentReceiptEmail(booking: BookingWithDetails) {
     await prisma.emailLog.create({
       data: {
         bookingId: booking.id,
-        recipientEmail: booking.user.email,
-        emailType: 'PAYMENT_RECEIPT',
+        toEmail: booking.user.email,
+        fromEmail: process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@skoot.bike',
+        subject: `Payment Receipt - ${booking.bookingNumber} - Skoot Transportation`,
         status: 'SENT',
         sentAt: new Date(),
-        messageId: result.messageId,
       }
     });
 
@@ -239,8 +240,8 @@ export async function sendBookingReminderEmail(booking: BookingWithDetails, remi
       '{{confirmationCode}}': booking.bookingNumber,
       '{{departureDate}}': departureDate,
       '{{departureTime}}': departureTime,
-      '{{pickupLocation}}': booking.departure.pickupLocation?.name || 'TBD',
-      '{{pickupAddress}}': booking.departure.pickupLocation?.address || 'TBD',
+      '{{pickupLocation}}': booking.pickupLocation.name,
+      '{{pickupAddress}}': booking.pickupLocation.address,
       '{{passengerCount}}': booking.passengerCount.toString(),
     };
 
@@ -262,11 +263,11 @@ export async function sendBookingReminderEmail(booking: BookingWithDetails, remi
     await prisma.emailLog.create({
       data: {
         bookingId: booking.id,
-        recipientEmail: booking.user.email,
-        emailType: reminderType,
+        toEmail: booking.user.email,
+        fromEmail: process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@skoot.bike',
+        subject: `Departure Reminder - ${booking.bookingNumber} - Skoot Transportation`,
         status: 'SENT',
         sentAt: new Date(),
-        messageId: result.messageId,
       }
     });
 
