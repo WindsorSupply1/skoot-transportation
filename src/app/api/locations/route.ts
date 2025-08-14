@@ -23,12 +23,12 @@ export async function GET(request: NextRequest) {
         city: true,
         state: true,
         zipCode: true,
-        locationType: true,
-        description: true,
-        instructions: true,
         latitude: true,
         longitude: true,
-        isActive: true
+        isPickup: true,
+        isDropoff: true,
+        isActive: true,
+        sortOrder: true
       },
       orderBy: {
         name: 'asc'
