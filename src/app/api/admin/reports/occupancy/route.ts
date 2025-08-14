@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
             }
           },
           _count: {
-            select: { passengers: true }
+            select: { bookings: true }
           }
         },
         orderBy: {
@@ -43,16 +43,16 @@ export async function GET(request: NextRequest) {
 
       // Calculate occupancy statistics
       const occupancyData = departures.map(departure => {
-        const occupancyRate = (departure._count.passengers / departure.capacity) * 100;
+        const occupancyRate = (departure._count.bookings / departure.capacity) * 100;
         
         return {
           id: departure.id,
           date: departure.date,
-          departureTime: departure.schedule.departureTime,
+          time: departure.schedule.time,
           routeName: departure.schedule.route.name,
           capacity: departure.capacity,
-          bookedSeats: departure._count.passengers,
-          availableSeats: departure.capacity - departure._count.passengers,
+          bookedSeats: departure._count.bookings,
+          availableSeats: departure.capacity - departure._count.bookings,
           occupancyRate: Math.round(occupancyRate * 100) / 100,
           status: occupancyRate >= 100 ? 'FULL' :
                  occupancyRate >= 80 ? 'HIGH' :
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 
       // Calculate summary statistics
       const totalCapacity = departures.reduce((sum, dep) => sum + dep.capacity, 0);
-      const totalBooked = departures.reduce((sum, dep) => sum + dep._count.passengers, 0);
+      const totalBooked = departures.reduce((sum, dep) => sum + dep._count.bookings, 0);
       const overallOccupancyRate = totalCapacity > 0 ? (totalBooked / totalCapacity) * 100 : 0;
 
       // Group by route
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
         }
         
         acc[routeId].totalCapacity += departure.capacity;
-        acc[routeId].totalBooked += departure._count.passengers;
+        acc[routeId].totalBooked += departure._count.bookings;
         acc[routeId].departures += 1;
         
         return acc;
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
 
       // Group by time slot
       const timeSlotOccupancy = departures.reduce((acc: any, departure) => {
-        const time = departure.schedule.departureTime;
+        const time = departure.schedule.time;
         
         if (!acc[time]) {
           acc[time] = {
@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
         }
         
         acc[time].totalCapacity += departure.capacity;
-        acc[time].totalBooked += departure._count.passengers;
+        acc[time].totalBooked += departure._count.bookings;
         acc[time].departures += 1;
         
         return acc;
@@ -136,7 +136,7 @@ export async function GET(request: NextRequest) {
         }
         
         acc[date].totalCapacity += departure.capacity;
-        acc[date].totalBooked += departure._count.passengers;
+        acc[date].totalBooked += departure._count.bookings;
         acc[date].departures += 1;
         
         return acc;
@@ -178,5 +178,5 @@ export async function GET(request: NextRequest) {
       console.error('Occupancy report error:', error);
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-  }, 'ADMIN');
+  }, true);
 }
