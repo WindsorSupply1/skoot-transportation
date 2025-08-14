@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
 
             if (!existingDeparture) {
               // Calculate estimated arrival time
-              const [hours, minutes] = schedule.departureTime.split(':').map(Number);
+              const [hours, minutes] = schedule.time.split(':').map(Number);
               const departureDateTime = new Date(currentDate);
               departureDateTime.setHours(hours, minutes, 0, 0);
               
