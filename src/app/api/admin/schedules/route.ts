@@ -16,16 +16,11 @@ export async function GET(request: NextRequest) {
       const schedules = await prisma.schedule.findMany({
         where,
         include: {
-          route: {
-            include: {
-              origin: true,
-              destination: true
-            }
-          },
+          route: true,
           departures: {
             include: {
               _count: {
-                select: { passengers: true }
+                select: { bookings: true }
               }
             },
             where: {
@@ -39,30 +34,30 @@ export async function GET(request: NextRequest) {
         },
         orderBy: [
           { route: { name: 'asc' } },
-          { departureTime: 'asc' }
+          { time: 'asc' }
         ]
       });
 
       const schedulesWithStats = schedules.map(schedule => ({
         id: schedule.id,
-        departureTime: schedule.departureTime,
+        time: schedule.time,
         isActive: schedule.isActive,
         route: {
           id: schedule.route.id,
           name: schedule.route.name,
-          origin: schedule.route.origin.name,
-          destination: schedule.route.destination.name,
-          duration: schedule.route.estimatedDuration
+          origin: schedule.route.origin,
+          destination: schedule.route.destination,
+          duration: schedule.route.duration
         },
         upcomingDepartures: schedule.departures.map(departure => ({
           id: departure.id,
           date: departure.date,
           capacity: departure.capacity,
-          bookedSeats: departure._count.passengers,
-          availableSeats: departure.capacity - departure._count.passengers
+          bookedSeats: departure._count.bookings,
+          availableSeats: departure.capacity - departure._count.bookings
         })),
         totalUpcomingCapacity: schedule.departures.reduce((sum, dep) => sum + dep.capacity, 0),
-        totalBookedSeats: schedule.departures.reduce((sum, dep) => sum + dep._count.passengers, 0)
+        totalBookedSeats: schedule.departures.reduce((sum, dep) => sum + dep._count.bookings, 0)
       }));
 
       return NextResponse.json({ schedules: schedulesWithStats });
@@ -70,7 +65,7 @@ export async function GET(request: NextRequest) {
       console.error('Schedules fetch error:', error);
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-  }, 'ADMIN');
+  }, true);
 }
 
 export async function POST(request: NextRequest) {
@@ -78,14 +73,14 @@ export async function POST(request: NextRequest) {
     try {
       const {
         routeId,
-        departureTime,
-        daysOfWeek,
+        time,
+        dayOfWeek,
         isActive = true
       } = await req.json();
 
-      if (!routeId || !departureTime || !daysOfWeek || !Array.isArray(daysOfWeek)) {
+      if (!routeId || !time || dayOfWeek === undefined) {
         return NextResponse.json({
-          error: 'Missing required fields: routeId, departureTime, daysOfWeek'
+          error: 'Missing required fields: routeId, time, dayOfWeek'
         }, { status: 400 });
       }
 
@@ -102,17 +97,12 @@ export async function POST(request: NextRequest) {
       const schedule = await prisma.schedule.create({
         data: {
           routeId,
-          departureTime,
-          daysOfWeek,
+          time,
+          dayOfWeek,
           isActive
         },
         include: {
-          route: {
-            include: {
-              origin: true,
-              destination: true
-            }
-          }
+          route: true
         }
       });
 
@@ -124,7 +114,7 @@ export async function POST(request: NextRequest) {
       console.error('Schedule creation error:', error);
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-  }, 'ADMIN');
+  }, true);
 }
 
 export async function PUT(request: NextRequest) {
@@ -132,8 +122,8 @@ export async function PUT(request: NextRequest) {
     try {
       const {
         id,
-        departureTime,
-        daysOfWeek,
+        time,
+        dayOfWeek,
         isActive
       } = await req.json();
 
@@ -142,20 +132,15 @@ export async function PUT(request: NextRequest) {
       }
 
       const updateData: any = {};
-      if (departureTime !== undefined) updateData.departureTime = departureTime;
-      if (daysOfWeek !== undefined) updateData.daysOfWeek = daysOfWeek;
+      if (time !== undefined) updateData.time = time;
+      if (dayOfWeek !== undefined) updateData.dayOfWeek = dayOfWeek;
       if (isActive !== undefined) updateData.isActive = isActive;
 
       const schedule = await prisma.schedule.update({
         where: { id },
         data: updateData,
         include: {
-          route: {
-            include: {
-              origin: true,
-              destination: true
-            }
-          }
+          route: true
         }
       });
 
@@ -167,7 +152,7 @@ export async function PUT(request: NextRequest) {
       console.error('Schedule update error:', error);
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-  }, 'ADMIN');
+  }, true);
 }
 
 export async function DELETE(request: NextRequest) {
@@ -212,5 +197,5 @@ export async function DELETE(request: NextRequest) {
       console.error('Schedule deletion error:', error);
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-  }, 'ADMIN');
+  }, true);
 }
