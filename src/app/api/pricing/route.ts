@@ -15,9 +15,12 @@ export async function GET(request: NextRequest) {
       where: { isActive: true }
     });
 
-    const settings = await prisma.siteSettings.findFirst();
-    const luggageFee = settings?.extraLuggageFee || 5;
-    const petFee = settings?.petFee || 10;
+    // Get fee settings using key-value structure
+    const luggageFeeSetting = await prisma.siteSettings.findUnique({ where: { key: 'extraLuggageFee' } });
+    const petFeeSetting = await prisma.siteSettings.findUnique({ where: { key: 'petFee' } });
+    
+    const luggageFee = luggageFeeSetting ? parseFloat(luggageFeeSetting.value) : 5;
+    const petFee = petFeeSetting ? parseFloat(petFeeSetting.value) : 10;
 
     // Base prices by customer type
     const basePrices: Record<string, number> = {
