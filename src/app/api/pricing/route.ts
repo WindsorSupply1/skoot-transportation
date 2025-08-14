@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       name: tier.name,
       basePrice: tier.basePrice,
       description: tier.description,
-      eligibility: tier.eligibilityRequirements
+      customerType: tier.customerType
     }));
 
     return NextResponse.json({ 
