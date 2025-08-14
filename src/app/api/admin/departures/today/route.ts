@@ -15,25 +15,22 @@ export async function GET(request: NextRequest) {
             gte: startOfToday,
             lt: endOfToday
           },
-          isActive: true
+          status: {
+            in: ['SCHEDULED', 'BOARDING']
+          }
         },
         include: {
           schedule: {
             include: {
-              route: {
-                include: {
-                  origin: true,
-                  destination: true
-                }
-              }
+              route: true
             }
           },
           _count: {
-            select: { passengers: true }
+            select: { bookings: true }
           }
         },
         orderBy: {
-          schedule: { departureTime: 'asc' }
+          schedule: { time: 'asc' }
         }
       });
 
@@ -41,26 +38,19 @@ export async function GET(request: NextRequest) {
         id: departure.id,
         date: departure.date,
         capacity: departure.capacity,
-        bookedSeats: departure._count.passengers,
-        availableSeats: departure.capacity - departure._count.passengers,
-        estimatedArrival: departure.estimatedArrival,
-        isActive: departure.isActive,
-        notes: departure.notes,
+        bookedSeats: departure._count.bookings,
+        availableSeats: departure.capacity - departure._count.bookings,
+        status: departure.status,
+        driverNotes: departure.driverNotes,
         schedule: {
           id: departure.schedule.id,
-          departureTime: departure.schedule.departureTime,
+          time: departure.schedule.time,
           route: {
             id: departure.schedule.route.id,
             name: departure.schedule.route.name,
-            origin: {
-              id: departure.schedule.route.origin.id,
-              name: departure.schedule.route.origin.name
-            },
-            destination: {
-              id: departure.schedule.route.destination.id,
-              name: departure.schedule.route.destination.name
-            },
-            estimatedDuration: departure.schedule.route.estimatedDuration
+            origin: departure.schedule.route.origin,
+            destination: departure.schedule.route.destination,
+            duration: departure.schedule.route.duration
           }
         }
       }));
@@ -71,5 +61,5 @@ export async function GET(request: NextRequest) {
       console.error('Today departures fetch error:', error);
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-  }, 'ADMIN');
+  }, true);
 }

@@ -86,9 +86,7 @@ export async function POST(request: NextRequest) {
                 scheduleId: schedule.id,
                 date: new Date(currentDate),
                 capacity,
-                estimatedArrival: `${arrivalTimeString}`,
-                isActive: true,
-                notes: `Auto-generated departure for ${schedule.route.name}`
+                status: 'SCHEDULED'
               });
             }
           }
