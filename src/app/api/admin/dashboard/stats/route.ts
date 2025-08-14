@@ -65,7 +65,9 @@ export async function GET(request: NextRequest) {
             gte: today,
             lt: new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
           },
-          isActive: true
+          status: {
+            in: ['SCHEDULED', 'BOARDING']
+          }
         },
         include: {
           _count: {
