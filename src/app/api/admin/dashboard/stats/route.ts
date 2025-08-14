@@ -106,5 +106,5 @@ export async function GET(request: NextRequest) {
       console.error('Dashboard stats error:', error);
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
-  }, 'ADMIN');
+  }, true);
 }
