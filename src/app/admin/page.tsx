@@ -312,7 +312,7 @@ export default function AdminDashboard() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-gray-900">
-                            {booking.confirmationCode}
+                            {booking.bookingNumber}
                           </span>
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.bookingStatus)}`}>
                             {booking.bookingStatus}
