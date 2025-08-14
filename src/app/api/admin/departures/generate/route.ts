@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         
         for (const schedule of schedules) {
           // Check if this schedule runs on this day of week
-          if (schedule.daysOfWeek.includes(dayOfWeek)) {
+          if (schedule.dayOfWeek === dayOfWeek) {
             // Check if departure already exists for this date/schedule
             const existingDeparture = await prisma.departure.findFirst({
               where: {
