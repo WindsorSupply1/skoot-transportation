@@ -176,7 +176,7 @@ export async function sendPaymentReceiptEmail(booking: BookingWithDetails) {
     const replacements = {
       '{{confirmationCode}}': booking.bookingNumber,
       '{{paymentAmount}}': `$${booking.payment.amount.toFixed(2)}`,
-      '{{paymentMethod}}': booking.payment.paymentMethod,
+      '{{paymentMethod}}': booking.payment.paymentMethod || 'Credit Card',
       '{{paymentDate}}': paidDate,
       '{{passengerCount}}': booking.passengerCount.toString(),
       '{{routeName}}': booking.departure.schedule.route.name,
