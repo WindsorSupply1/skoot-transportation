@@ -1,19 +1,37 @@
+export const dynamic = 'force-static';
+
+export const metadata = {
+  title: 'Admin Dashboard - Skoot Transportation',
+  description: 'Admin panel for Skoot Transportation',
+};
+
 export default function AdminDashboard() {
   return (
-    <html>
-      <head>
-        <title>Admin - Skoot Transportation</title>
-      </head>
-      <body>
-        <div style={{minHeight: '100vh', backgroundColor: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-          <div style={{backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '32px'}}>
-            <h1 style={{fontSize: '24px', fontWeight: 'bold', color: '#111827', marginBottom: '16px'}}>Admin Dashboard</h1>
-            <p style={{color: '#6b7280'}}>Welcome to the Skoot Transportation admin panel.</p>
-            <p style={{fontSize: '14px', color: '#9ca3af', marginTop: '8px'}}>Basic admin page - no authentication required.</p>
-            <p style={{fontSize: '12px', color: '#6b7280', marginTop: '16px'}}>Built: {new Date().toISOString()}</p>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-sm p-8 max-w-md w-full">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Admin Dashboard</h1>
+        <p className="text-gray-600 mb-2">Welcome to the Skoot Transportation admin panel.</p>
+        <p className="text-sm text-gray-500 mb-4">Basic admin page - no authentication required.</p>
+        
+        <div className="border-t pt-4">
+          <h2 className="text-lg font-semibold text-gray-800 mb-2">Quick Actions</h2>
+          <div className="space-y-2">
+            <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+              View Bookings
+            </button>
+            <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+              Manage Schedules
+            </button>
+            <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">
+              Customer Reports
+            </button>
           </div>
         </div>
-      </body>
-    </html>
+        
+        <div className="mt-6 text-xs text-gray-400">
+          Status: Admin panel placeholder
+        </div>
+      </div>
+    </div>
   );
 }
