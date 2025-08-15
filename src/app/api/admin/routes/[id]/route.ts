@@ -57,7 +57,7 @@ export async function PATCH(
     try {
       const routeId = params.id;
       const body = await req.json();
-      const { name, origin, destination, price, duration, isActive } = body;
+      const { name, origin, destination, duration, isActive } = body;
 
       // Check if route exists
       const existingRoute = await prisma.route.findUnique({
@@ -92,7 +92,7 @@ export async function PATCH(
       if (name !== undefined) updateData.name = name;
       if (origin !== undefined) updateData.origin = origin;
       if (destination !== undefined) updateData.destination = destination;
-      if (price !== undefined) updateData.price = parseFloat(price);
+      // Note: price is handled through PricingTier system, not stored on Route
       if (duration !== undefined) updateData.duration = parseInt(duration);
       if (isActive !== undefined) updateData.isActive = isActive;
 

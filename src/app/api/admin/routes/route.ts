@@ -37,14 +37,13 @@ export async function POST(request: NextRequest) {
         name, 
         origin, 
         destination, 
-        price, 
         duration, 
         isActive = true 
       } = body;
 
-      if (!name || !origin || !destination || !price || !duration) {
+      if (!name || !origin || !destination || !duration) {
         return NextResponse.json({ 
-          error: 'Name, origin, destination, price, and duration are required' 
+          error: 'Name, origin, destination, and duration are required' 
         }, { status: 400 });
       }
 
@@ -70,9 +69,9 @@ export async function POST(request: NextRequest) {
           name,
           origin,
           destination,
-          price: parseFloat(price),
           duration: parseInt(duration),
           isActive
+          // Note: price is handled through PricingTier system, not stored on Route
         }
       });
 
