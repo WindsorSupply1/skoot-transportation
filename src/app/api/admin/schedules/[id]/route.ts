@@ -35,7 +35,7 @@ export async function GET(
       const scheduleWithStats = {
         id: schedule.id,
         time: schedule.time,
-        capacity: schedule.capacity,
+        // Note: capacity is stored per departure, not per schedule
         isActive: schedule.isActive,
         createdAt: schedule.createdAt,
         updatedAt: schedule.updatedAt,
@@ -66,7 +66,7 @@ export async function PATCH(
     try {
       const scheduleId = params.id;
       const body = await req.json();
-      const { time, capacity, isActive } = body;
+      const { time, isActive } = body;
 
       // Check if schedule exists
       const existingSchedule = await prisma.schedule.findUnique({
@@ -98,7 +98,7 @@ export async function PATCH(
       // Build update data
       const updateData: any = { updatedAt: new Date() };
       if (time !== undefined) updateData.time = time;
-      if (capacity !== undefined) updateData.capacity = parseInt(capacity);
+      // Note: capacity is stored per departure, not per schedule
       if (isActive !== undefined) updateData.isActive = isActive;
 
       // Update schedule
@@ -122,7 +122,7 @@ export async function PATCH(
       const scheduleWithStats = {
         id: updatedSchedule.id,
         time: updatedSchedule.time,
-        capacity: updatedSchedule.capacity,
+        // Note: capacity is stored per departure, not per schedule
         isActive: updatedSchedule.isActive,
         createdAt: updatedSchedule.createdAt,
         updatedAt: updatedSchedule.updatedAt,

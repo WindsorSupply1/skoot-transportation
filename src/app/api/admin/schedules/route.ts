@@ -74,13 +74,12 @@ export async function POST(request: NextRequest) {
       const {
         routeId,
         time,
-        capacity = 14,
         isActive = true
       } = await req.json();
 
-      if (!routeId || !time || !capacity) {
+      if (!routeId || !time) {
         return NextResponse.json({
-          error: 'Missing required fields: routeId, time, capacity'
+          error: 'Missing required fields: routeId, time'
         }, { status: 400 });
       }
 
@@ -112,7 +111,7 @@ export async function POST(request: NextRequest) {
         data: {
           routeId,
           time,
-          capacity: parseInt(capacity),
+          // Note: capacity is stored per departure, not per schedule
           isActive
         },
         include: {
