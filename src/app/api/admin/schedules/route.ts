@@ -74,13 +74,13 @@ export async function POST(request: NextRequest) {
       const {
         routeId,
         time,
-        dayOfWeek,
+        capacity = 14,
         isActive = true
       } = await req.json();
 
-      if (!routeId || !time || dayOfWeek === undefined) {
+      if (!routeId || !time || !capacity) {
         return NextResponse.json({
-          error: 'Missing required fields: routeId, time, dayOfWeek'
+          error: 'Missing required fields: routeId, time, capacity'
         }, { status: 400 });
       }
 
@@ -93,16 +93,31 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Route not found' }, { status: 404 });
       }
 
+      // Check for duplicate schedule (same route and time)
+      const existingSchedule = await prisma.schedule.findFirst({
+        where: {
+          routeId,
+          time
+        }
+      });
+
+      if (existingSchedule) {
+        return NextResponse.json({ 
+          error: 'A schedule with this time already exists for this route' 
+        }, { status: 400 });
+      }
+
       // Create schedule
       const schedule = await prisma.schedule.create({
         data: {
           routeId,
           time,
-          dayOfWeek,
+          capacity: parseInt(capacity),
           isActive
         },
         include: {
-          route: true
+          route: true,
+          departures: true
         }
       });
 
