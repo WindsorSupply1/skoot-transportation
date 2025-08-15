@@ -9,6 +9,7 @@ export default function HomePage() {
   const [showHeaderBooking, setShowHeaderBooking] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [bookingRef, setBookingRef] = useState('');
+  const [isBooking, setIsBooking] = useState(false);
 
   const faqs = [
     {
@@ -73,9 +74,15 @@ export default function HomePage() {
 
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const ref = '#SK' + Date.now().toString().slice(-6);
-    setBookingRef(ref);
-    setShowModal(true);
+    setIsBooking(true);
+    
+    // Simulate booking process
+    setTimeout(() => {
+      const ref = '#SK' + Date.now().toString().slice(-6);
+      setBookingRef(ref);
+      setIsBooking(false);
+      setShowModal(true);
+    }, 2000); // 2 second realistic booking time
   };
 
   useEffect(() => {
@@ -392,8 +399,13 @@ export default function HomePage() {
                 <option value="military">Military - $32</option>
               </select>
             </div>
-            <button type="submit" style={{ background: 'linear-gradient(135deg, #28A745 0%, #218838 100%)', color: 'white', padding: '12px 20px', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-              Book Now
+            <button type="submit" disabled={isBooking} style={{ background: isBooking ? '#ccc' : 'linear-gradient(135deg, #28A745 0%, #218838 100%)', color: 'white', padding: '12px 20px', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: isBooking ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+              {isBooking ? (
+                <>
+                  <div className="skoot-loader"></div>
+                  Processing...
+                </>
+              ) : 'Book Now'}
             </button>
           </form>
           <div style={{ fontSize: '0.9em', color: '#666' }}>
@@ -429,7 +441,7 @@ export default function HomePage() {
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '60px', alignItems: 'center', zIndex: 2, position: 'relative' }}>
           <div>
             <h1 style={{ fontSize: '3.5em', color: '#333333', marginBottom: '20px', lineHeight: '1.2' }}>
-              Columbia to <span style={{ color: '#FF6600', fontWeight: 'bold' }}>Charlotte Airport</span>
+              Columbia, SC to <span style={{ color: '#FF6600', fontWeight: 'bold' }}>Charlotte Airport</span> Shuttle
             </h1>
             <p style={{ fontSize: '1.4em', color: '#666666', marginBottom: '30px' }}>
               Reliable shuttle service every even hour - starting at just $31
@@ -499,8 +511,13 @@ export default function HomePage() {
                 </select>
               </div>
               
-              <button type="submit" style={{ background: 'linear-gradient(135deg, #28A745 0%, #218838 100%)', color: 'white', padding: '18px', border: 'none', borderRadius: '10px', fontSize: '1.2em', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px' }}>
-                Reserve My Seat - $31
+              <button type="submit" disabled={isBooking} style={{ background: isBooking ? '#ccc' : 'linear-gradient(135deg, #28A745 0%, #218838 100%)', color: 'white', padding: '18px', border: 'none', borderRadius: '10px', fontSize: '1.2em', fontWeight: 'bold', cursor: isBooking ? 'not-allowed' : 'pointer', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                {isBooking ? (
+                  <>
+                    <div className="skoot-loader"></div>
+                    Processing Reservation...
+                  </>
+                ) : 'Reserve My Seat - $31'}
               </button>
             </form>
           </div>
@@ -747,6 +764,303 @@ export default function HomePage() {
           </button>
         </div>
       </div>
+
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "LocalBusiness",
+            "name": "Skoot Shuttle",
+            "image": "https://skoot.bike/logo.jpg",
+            "url": "https://skoot.bike",
+            "telephone": "+1-803-SKOOT-SC",
+            "address": {
+              "@type": "PostalAddress",
+              "streetAddress": "Columbia Area",
+              "addressLocality": "Columbia",
+              "addressRegion": "SC",
+              "postalCode": "29201",
+              "addressCountry": "US"
+            },
+            "geo": {
+              "@type": "GeoCoordinates",
+              "latitude": 34.0007,
+              "longitude": -81.0348
+            },
+            "openingHours": "Mo-Su 06:00-20:00",
+            "priceRange": "$31-$62",
+            "description": "Professional shuttle service from Columbia, SC to Charlotte Douglas International Airport with hourly departures.",
+            "serviceArea": {
+              "@type": "GeoCircle",
+              "geoMidpoint": {
+                "@type": "GeoCoordinates",
+                "latitude": 34.0007,
+                "longitude": -81.0348
+              },
+              "geoRadius": "50000"
+            },
+            "hasOfferCatalog": {
+              "@type": "OfferCatalog",
+              "name": "Shuttle Services",
+              "itemListElement": [
+                {
+                  "@type": "Offer",
+                  "itemOffered": {
+                    "@type": "Service",
+                    "name": "Columbia to Charlotte Airport Shuttle",
+                    "description": "Reliable shuttle service to Charlotte Douglas International Airport"
+                  },
+                  "price": "31",
+                  "priceCurrency": "USD"
+                }
+              ]
+            },
+            "sameAs": [
+              "https://facebook.com/skoottransportation",
+              "https://twitter.com/skoottransport"
+            ]
+          })
+        }}
+      />
+
+      {/* Custom Loading Animation Styles */}
+      <style jsx global>{`
+        .skoot-loader {
+          width: 20px;
+          height: 20px;
+          border: 2px solid transparent;
+          border-top: 2px solid #ffffff;
+          border-radius: 50%;
+          animation: skoot-spin 1s linear infinite;
+          position: relative;
+        }
+
+        .skoot-loader::before {
+          content: '';
+          position: absolute;
+          top: -4px;
+          left: -4px;
+          right: -4px;
+          bottom: -4px;
+          border: 2px solid transparent;
+          border-top: 2px solid #FF6600;
+          border-radius: 50%;
+          animation: skoot-spin 1.5s linear infinite reverse;
+        }
+
+        @keyframes skoot-spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        .skoot-loader-bus {
+          width: 24px;
+          height: 24px;
+          background: #FF6600;
+          border-radius: 4px;
+          position: relative;
+          animation: skoot-move 2s ease-in-out infinite;
+        }
+
+        .skoot-loader-bus::before {
+          content: '';
+          position: absolute;
+          top: 3px;
+          left: 3px;
+          right: 3px;
+          height: 8px;
+          background: white;
+          border-radius: 2px;
+        }
+
+        .skoot-loader-bus::after {
+          content: '';
+          position: absolute;
+          bottom: -4px;
+          left: 2px;
+          width: 4px;
+          height: 4px;
+          background: #333;
+          border-radius: 50%;
+          box-shadow: 14px 0 0 #333;
+        }
+
+        @keyframes skoot-move {
+          0%, 100% { transform: translateX(0px); }
+          50% { transform: translateX(10px); }
+        }
+
+        .modal {
+          display: ${showModal ? 'block' : 'none'};
+          position: fixed;
+          z-index: 2000;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0,0,0,0.5);
+          backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+          background-color: white;
+          margin: 10% auto;
+          padding: 40px;
+          border-radius: 15px;
+          width: 90%;
+          max-width: 500px;
+          position: relative;
+          animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+          from { transform: translateY(-50px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+
+        .sticky-book-btn {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background: linear-gradient(135deg, #FF6600 0%, #E55A00 100%);
+          color: white;
+          padding: 15px 25px;
+          border-radius: 50px;
+          text-decoration: none;
+          font-weight: bold;
+          box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4);
+          z-index: 1000;
+          animation: pulse 2s infinite;
+          transition: all 0.3s ease;
+        }
+
+        .sticky-book-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(255, 102, 0, 0.6);
+        }
+
+        @keyframes pulse {
+          0% { box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4); }
+          50% { box-shadow: 0 4px 25px rgba(255, 102, 0, 0.8); }
+          100% { box-shadow: 0 4px 15px rgba(255, 102, 0, 0.4); }
+        }
+
+        .header-booking {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          background: white;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          z-index: 1500;
+          padding: 15px 0;
+          transform: translateY(${showHeaderBooking ? '0' : '-100%'});
+          transition: transform 0.3s ease;
+        }
+
+        .booking-widget {
+          background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+          padding: 40px;
+          border-radius: 20px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+          margin-top: 40px;
+        }
+
+        .faq-category-btn {
+          background: transparent;
+          border: 2px solid #E8E8E8;
+          padding: 8px 16px;
+          border-radius: 20px;
+          margin: 5px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          color: #666;
+          font-weight: 500;
+        }
+
+        .faq-category-btn.active {
+          background: #FF6600;
+          border-color: #FF6600;
+          color: white;
+        }
+
+        .faq-category-btn:hover {
+          border-color: #FF6600;
+          color: #FF6600;
+        }
+
+        .faq-item {
+          border: 1px solid #E8E8E8;
+          border-radius: 10px;
+          margin-bottom: 15px;
+          overflow: hidden;
+          transition: all 0.3s ease;
+        }
+
+        .faq-item:hover {
+          box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .faq-question {
+          background: white;
+          padding: 20px;
+          cursor: pointer;
+          border: none;
+          width: 100%;
+          text-align: left;
+          font-size: 1.1em;
+          font-weight: 600;
+          color: #333;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .faq-question:hover {
+          background: #f8f9fa;
+        }
+
+        .faq-answer {
+          padding: 0 20px 20px;
+          color: #666;
+          line-height: 1.6;
+        }
+
+        .pricing-card {
+          background: white;
+          padding: 40px;
+          border-radius: 15px;
+          box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+          text-align: center;
+          transition: transform 0.3s ease;
+        }
+
+        .pricing-card:hover {
+          transform: translateY(-5px);
+        }
+
+        @media (max-width: 768px) {
+          .sticky-book-btn {
+            bottom: 10px;
+            right: 10px;
+            padding: 12px 20px;
+            font-size: 14px;
+          }
+          
+          .booking-widget {
+            padding: 20px;
+            margin-top: 20px;
+          }
+          
+          .modal-content {
+            margin: 20% auto;
+            padding: 20px;
+            width: 95%;
+          }
+        }
+      `}</style>
     </>
   );
 }

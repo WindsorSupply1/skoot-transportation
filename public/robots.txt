@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://skoot.bike/sitemap.xml
+
+# Block access to admin areas
+Disallow: /admin
+Disallow: /api
+
+# Allow important pages
+Allow: /
+Allow: /schedule
+Allow: /pricing
+Allow: /faq
+Allow: /contact
+Allow: /auth/signin
