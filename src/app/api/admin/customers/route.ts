@@ -32,15 +32,13 @@ export async function GET(request: NextRequest) {
       }
 
       if (status && status !== 'all') {
-        if (status === 'active') {
-          where.isActive = true;
-        } else if (status === 'inactive') {
-          where.isActive = false;
-        } else if (status === 'new') {
+        // Note: isActive field doesn't exist in User model, so active/inactive filters are ignored
+        if (status === 'new') {
           const weekAgo = new Date();
           weekAgo.setDate(weekAgo.getDate() - 7);
           where.createdAt = { gte: weekAgo };
         }
+        // 'active' and 'inactive' status filters are not supported since isActive field doesn't exist
       }
 
       if (registeredFrom || registeredTo) {
@@ -87,7 +85,7 @@ export async function GET(request: NextRequest) {
           phone: user.phone,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
-          isActive: user.isActive,
+          isActive: true, // Default to active since field doesn't exist in schema
           totalBookings,
           totalSpent,
           lastBookingDate,
@@ -158,7 +156,7 @@ export async function POST(request: NextRequest) {
   return withAuth(request, async (req, user) => {
     try {
       const body = await req.json();
-      const { email, firstName, lastName, phone, isActive = true } = body;
+      const { email, firstName, lastName, phone } = body;
 
       if (!email || !firstName || !lastName) {
         return NextResponse.json({ 
@@ -183,9 +181,8 @@ export async function POST(request: NextRequest) {
           email,
           firstName,
           lastName,
-          phone,
-          isActive,
-          password: '', // Empty password - they'll need to set one on first login
+          phone
+          // Note: isActive and password fields don't exist in User model
         }
       });
 
@@ -199,7 +196,7 @@ export async function POST(request: NextRequest) {
           phone: newUser.phone,
           createdAt: newUser.createdAt,
           updatedAt: newUser.updatedAt,
-          isActive: newUser.isActive,
+          isActive: true, // Default to active since field doesn't exist in schema
           totalBookings: 0,
           totalSpent: 0,
           lastBookingDate: null,

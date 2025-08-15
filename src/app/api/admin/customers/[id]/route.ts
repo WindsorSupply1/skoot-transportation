@@ -51,7 +51,7 @@ export async function GET(
         phone: customer.phone,
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt,
-        isActive: customer.isActive,
+        isActive: true, // Default to active since field doesn't exist in schema
         totalBookings,
         totalSpent,
         lastBookingDate,
@@ -95,7 +95,7 @@ export async function PATCH(
     try {
       const customerId = params.id;
       const body = await req.json();
-      const { email, firstName, lastName, phone, isActive, notes } = body;
+      const { email, firstName, lastName, phone } = body;
 
       // Check if customer exists
       const existingCustomer = await prisma.user.findUnique({
@@ -128,8 +128,7 @@ export async function PATCH(
       if (firstName !== undefined) updateData.firstName = firstName;
       if (lastName !== undefined) updateData.lastName = lastName;
       if (phone !== undefined) updateData.phone = phone;
-      if (isActive !== undefined) updateData.isActive = isActive;
-      if (notes !== undefined) updateData.notes = notes;
+      // Note: isActive and notes fields don't exist in User model, ignoring these updates
 
       // Update customer
       const updatedCustomer = await prisma.user.update({
@@ -166,7 +165,7 @@ export async function PATCH(
         phone: updatedCustomer.phone,
         createdAt: updatedCustomer.createdAt,
         updatedAt: updatedCustomer.updatedAt,
-        isActive: updatedCustomer.isActive,
+        isActive: true, // Default to active since field doesn't exist in schema
         totalBookings,
         totalSpent,
         lastBookingDate,
