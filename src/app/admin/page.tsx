@@ -69,20 +69,28 @@ export default function AdminDashboard() {
   const [recentBookings, setRecentBookings] = useState<RecentBooking[]>([]);
   const [todayDepartures, setTodayDepartures] = useState<TodayDeparture[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === 'loading') return;
-    
-    if (!session || !session.user?.isAdmin) {
-      router.push('/auth/signin');
-      return;
-    }
+    try {
+      if (status === 'loading') return;
+      
+      if (!session || !session.user?.isAdmin) {
+        router.push('/auth/signin');
+        return;
+      }
 
-    fetchDashboardData();
+      fetchDashboardData();
+    } catch (err) {
+      console.error('Admin dashboard error:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+      setLoading(false);
+    }
   }, [session, status, router]);
 
   const fetchDashboardData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [statsRes, bookingsRes, departuresRes] = await Promise.all([
         fetch('/api/admin/dashboard/stats'),
@@ -90,22 +98,29 @@ export default function AdminDashboard() {
         fetch('/api/admin/departures/today')
       ]);
 
-      if (statsRes.ok) {
-        const statsData = await statsRes.json();
-        setStats(statsData.stats);
+      if (!statsRes.ok) {
+        const errorText = await statsRes.text();
+        throw new Error(`Stats API failed: ${statsRes.status} - ${errorText}`);
       }
+      const statsData = await statsRes.json();
+      setStats(statsData.stats);
 
-      if (bookingsRes.ok) {
+      if (!bookingsRes.ok) {
+        console.warn('Bookings API failed:', await bookingsRes.text());
+      } else {
         const bookingsData = await bookingsRes.json();
-        setRecentBookings(bookingsData.bookings);
+        setRecentBookings(bookingsData.bookings || []);
       }
 
-      if (departuresRes.ok) {
+      if (!departuresRes.ok) {
+        console.warn('Departures API failed:', await departuresRes.text());
+      } else {
         const departuresData = await departuresRes.json();
-        setTodayDepartures(departuresData.departures);
+        setTodayDepartures(departuresData.departures || []);
       }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -158,6 +173,26 @@ export default function AdminDashboard() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-sm p-8 max-w-md">
+          <div className="text-red-600 mb-4">
+            <AlertCircle className="h-8 w-8 mx-auto mb-2" />
+            <h2 className="text-lg font-semibold text-center">Dashboard Error</h2>
+          </div>
+          <p className="text-gray-600 text-center mb-4">{error}</p>
+          <button 
+            onClick={() => fetchDashboardData()}
+            className="w-full bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
