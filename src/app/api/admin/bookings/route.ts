@@ -21,19 +21,26 @@ export async function GET(request: NextRequest) {
       const where: any = {};
 
       if (status && status !== 'all') {
-        where.status = status;
+        where.status = status.toUpperCase();
       }
 
       if (search) {
         where.OR = [
-          { confirmationCode: { contains: search, mode: 'insensitive' } },
-          { contactEmail: { contains: search, mode: 'insensitive' } },
-          { passengers: { some: { 
+          { bookingNumber: { contains: search, mode: 'insensitive' } },
+          { user: { 
             OR: [
+              { email: { contains: search, mode: 'insensitive' } },
               { firstName: { contains: search, mode: 'insensitive' } },
               { lastName: { contains: search, mode: 'insensitive' } }
             ]
-          }}}
+          }},
+          { departure: { 
+            schedule: { 
+              route: { 
+                name: { contains: search, mode: 'insensitive' } 
+              } 
+            } 
+          }}
         ];
       }
 
@@ -50,6 +57,7 @@ export async function GET(request: NextRequest) {
         prisma.booking.findMany({
           where,
           include: {
+            user: true,
             departure: {
               include: {
                 schedule: {
