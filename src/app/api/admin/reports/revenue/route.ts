@@ -8,136 +8,192 @@ export async function GET(request: NextRequest) {
   return withAuth(request, async (req, user) => {
     try {
       const { searchParams } = new URL(req.url);
-      const startDate = searchParams.get('startDate');
-      const endDate = searchParams.get('endDate');
-      const period = searchParams.get('period') || 'daily'; // daily, weekly, monthly
+      const fromDate = searchParams.get('from');
+      const toDate = searchParams.get('to');
 
-      if (!startDate || !endDate) {
+      if (!fromDate || !toDate) {
         return NextResponse.json({
-          error: 'Start date and end date are required'
+          error: 'From date and to date are required'
         }, { status: 400 });
       }
 
-      const start = new Date(startDate);
-      const end = new Date(endDate);
+      const start = new Date(fromDate);
+      const end = new Date(toDate);
+      end.setHours(23, 59, 59, 999); // Include the entire end date
 
-      // Revenue by date range
-      const revenueData = await prisma.booking.groupBy({
-        by: ['createdAt'],
+      // Calculate previous period for comparison
+      const periodLength = end.getTime() - start.getTime();
+      const previousStart = new Date(start.getTime() - periodLength);
+      const previousEnd = new Date(start.getTime() - 1);
+
+      // Current period bookings
+      const currentBookings = await prisma.booking.findMany({
         where: {
-          status: 'PAID',
-          createdAt: {
-            gte: start,
-            lte: end
-          }
-        },
-        _sum: {
-          totalAmount: true
-        },
-        _count: {
-          id: true
-        }
-      });
-
-      // Customer type breakdown - simplified for now
-      const customerTypeBreakdown: any[] = [];
-
-      // Route performance
-      const routePerformance = await prisma.booking.findMany({
-        where: {
-          status: 'PAID',
-          createdAt: {
-            gte: start,
-            lte: end
-          }
+          status: { in: ['CONFIRMED', 'PAID'] },
+          createdAt: { gte: start, lte: end }
         },
         include: {
+          user: true,
           departure: {
             include: {
               schedule: {
-                include: {
-                  route: true
-                }
+                include: { route: true }
               }
             }
           }
         }
       });
 
-      const routeStats = routePerformance.reduce((acc: any, booking) => {
-        const routeId = booking.departure.schedule.route.id;
-        const routeName = booking.departure.schedule.route.name;
-        
-        if (!acc[routeId]) {
-          acc[routeId] = {
-            routeId,
-            routeName,
-            totalRevenue: 0,
-            totalBookings: 0,
-            totalPassengers: 0
-          };
-        }
-        
-        acc[routeId].totalRevenue += booking.totalAmount;
-        acc[routeId].totalBookings += 1;
-        acc[routeId].totalPassengers += booking.passengerCount;
-        
-        return acc;
-      }, {});
-
-      // Peak times analysis
-      const peakTimesData = await prisma.booking.findMany({
+      // Previous period bookings for comparison
+      const previousBookings = await prisma.booking.findMany({
         where: {
-          status: 'PAID',
-          createdAt: {
-            gte: start,
-            lte: end
-          }
-        },
-        include: {
-          departure: {
-            include: {
-              schedule: true
-            }
-          }
+          status: { in: ['CONFIRMED', 'PAID'] },
+          createdAt: { gte: previousStart, lte: previousEnd }
         }
       });
 
-      const timeSlotStats = peakTimesData.reduce((acc: any, booking) => {
-        const time = booking.departure.schedule.time;
-        
-        if (!acc[time]) {
-          acc[time] = {
-            time,
-            bookings: 0,
-            passengers: 0,
-            revenue: 0
-          };
-        }
-        
-        acc[time].bookings += 1;
-        acc[time].passengers += booking.passengerCount;
-        acc[time].revenue += booking.totalAmount;
-        
-        return acc;
-      }, {});
-
-      // Summary statistics
-      const totalRevenue = revenueData.reduce((sum, item) => sum + (item._sum.totalAmount || 0), 0);
-      const totalBookings = revenueData.reduce((sum, item) => sum + item._count.id, 0);
+      // Calculate basic metrics
+      const totalRevenue = currentBookings.reduce((sum, booking) => sum + booking.totalAmount, 0);
+      const totalBookings = currentBookings.length;
+      const uniqueCustomers = new Set(currentBookings.map(b => b.userId)).size;
       const averageBookingValue = totalBookings > 0 ? totalRevenue / totalBookings : 0;
 
+      // Previous period metrics for comparison
+      const previousRevenue = previousBookings.reduce((sum, booking) => sum + booking.totalAmount, 0);
+      const previousBookingsCount = previousBookings.length;
+      const previousCustomers = new Set(previousBookings.map(b => b.userId)).size;
+
+      // Daily revenue breakdown
+      const dailyRevenue: { [key: string]: { revenue: number; bookings: number } } = {};
+      
+      // Initialize all dates in range with 0
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateKey = d.toISOString().split('T')[0];
+        dailyRevenue[dateKey] = { revenue: 0, bookings: 0 };
+      }
+
+      // Populate with actual data
+      currentBookings.forEach(booking => {
+        const dateKey = booking.createdAt.toISOString().split('T')[0];
+        if (dailyRevenue[dateKey]) {
+          dailyRevenue[dateKey].revenue += booking.totalAmount;
+          dailyRevenue[dateKey].bookings += 1;
+        }
+      });
+
+      // Route performance
+      const routeStats: { [key: string]: any } = {};
+      let totalCapacity = 0;
+      let totalBookedSeats = 0;
+
+      currentBookings.forEach(booking => {
+        const route = booking.departure.schedule.route;
+        const routeId = route.id;
+
+        if (!routeStats[routeId]) {
+          routeStats[routeId] = {
+            routeId,
+            routeName: route.name,
+            revenue: 0,
+            bookings: 0,
+            totalCapacity: 0,
+            bookedSeats: 0
+          };
+        }
+
+        routeStats[routeId].revenue += booking.totalAmount;
+        routeStats[routeId].bookings += 1;
+        routeStats[routeId].bookedSeats += booking.passengerCount;
+        routeStats[routeId].totalCapacity += booking.departure.capacity;
+
+        totalCapacity += booking.departure.capacity;
+        totalBookedSeats += booking.passengerCount;
+      });
+
+      // Calculate occupancy rates for routes
+      const routePerformance = Object.values(routeStats).map((route: any) => ({
+        ...route,
+        occupancyRate: route.totalCapacity > 0 ? (route.bookedSeats / route.totalCapacity) * 100 : 0
+      }));
+
+      // Overall occupancy rate
+      const occupancyRate = totalCapacity > 0 ? (totalBookedSeats / totalCapacity) * 100 : 0;
+
+      // Customer segmentation
+      const customerBookingCounts: { [key: string]: { bookings: number; revenue: number } } = {};
+      
+      currentBookings.forEach(booking => {
+        const userId = booking.userId;
+        if (!customerBookingCounts[userId]) {
+          customerBookingCounts[userId] = { bookings: 0, revenue: 0 };
+        }
+        customerBookingCounts[userId].bookings += 1;
+        customerBookingCounts[userId].revenue += booking.totalAmount;
+      });
+
+      const customerSegments = [
+        { segment: 'New', count: 0, revenue: 0, percentage: 0 },
+        { segment: 'Regular', count: 0, revenue: 0, percentage: 0 },
+        { segment: 'Frequent', count: 0, revenue: 0, percentage: 0 },
+        { segment: 'VIP', count: 0, revenue: 0, percentage: 0 }
+      ];
+
+      Object.values(customerBookingCounts).forEach((customer: any) => {
+        let segment;
+        if (customer.bookings >= 10) segment = 'VIP';
+        else if (customer.bookings >= 5) segment = 'Frequent';
+        else if (customer.bookings >= 2) segment = 'Regular';
+        else segment = 'New';
+
+        const segmentIndex = customerSegments.findIndex(s => s.segment === segment);
+        customerSegments[segmentIndex].count += 1;
+        customerSegments[segmentIndex].revenue += customer.revenue;
+      });
+
+      // Calculate percentages for customer segments
+      customerSegments.forEach(segment => {
+        segment.percentage = uniqueCustomers > 0 ? (segment.count / uniqueCustomers) * 100 : 0;
+      });
+
+      // Hourly distribution
+      const hourlyDistribution: { [key: number]: { bookings: number; revenue: number } } = {};
+      
+      // Initialize all hours
+      for (let hour = 0; hour < 24; hour++) {
+        hourlyDistribution[hour] = { bookings: 0, revenue: 0 };
+      }
+
+      currentBookings.forEach(booking => {
+        const time = booking.departure.schedule.time;
+        const hour = parseInt(time.split(':')[0]);
+        
+        hourlyDistribution[hour].bookings += 1;
+        hourlyDistribution[hour].revenue += booking.totalAmount;
+      });
+
       return NextResponse.json({
-        summary: {
-          totalRevenue,
-          totalBookings,
-          averageBookingValue,
-          period: `${startDate} to ${endDate}`
+        totalRevenue,
+        totalBookings,
+        averageBookingValue,
+        uniqueCustomers,
+        occupancyRate,
+        periodComparison: {
+          revenue: previousRevenue,
+          bookings: previousBookingsCount,
+          customers: previousCustomers
         },
-        revenueByDate: revenueData,
-        customerTypeBreakdown,
-        routePerformance: Object.values(routeStats),
-        peakTimes: Object.values(timeSlotStats).sort((a: any, b: any) => b.revenue - a.revenue)
+        dailyRevenue: Object.entries(dailyRevenue).map(([date, data]) => ({
+          date,
+          revenue: data.revenue,
+          bookings: data.bookings
+        })),
+        routePerformance,
+        customerSegments,
+        hourlyDistribution: Object.entries(hourlyDistribution).map(([hour, data]) => ({
+          hour: parseInt(hour),
+          bookings: data.bookings,
+          revenue: data.revenue
+        }))
       });
 
     } catch (error) {
