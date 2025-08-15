@@ -148,13 +148,17 @@ export async function DELETE(
       }
 
       // Check if route has active bookings
-      const activeBookingsCount = existingRoute.schedules
-        .flatMap(schedule => schedule.departures)
-        .flatMap(departure => departure.bookings)
-        .filter(booking => 
-          ['PENDING', 'CONFIRMED', 'PAID'].includes(booking.status) &&
-          new Date(booking.departure.date) >= new Date()
-        ).length;
+      let activeBookingsCount = 0;
+      for (const schedule of existingRoute.schedules) {
+        for (const departure of schedule.departures) {
+          if (new Date(departure.date) >= new Date()) {
+            const activeBookings = departure.bookings.filter(booking => 
+              ['PENDING', 'CONFIRMED', 'PAID'].includes(booking.status)
+            );
+            activeBookingsCount += activeBookings.length;
+          }
+        }
+      }
 
       if (activeBookingsCount > 0) {
         return NextResponse.json({
