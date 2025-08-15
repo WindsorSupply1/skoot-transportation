@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
       const {
         routeId,
         time,
+        dayOfWeek = 1, // Default to Monday
         isActive = true
       } = await req.json();
 
@@ -92,11 +93,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Route not found' }, { status: 404 });
       }
 
-      // Check for duplicate schedule (same route and time)
+      // Check for duplicate schedule (same route, time, and day)
       const existingSchedule = await prisma.schedule.findFirst({
         where: {
           routeId,
-          time
+          time,
+          dayOfWeek: parseInt(dayOfWeek)
         }
       });
 
@@ -111,6 +113,7 @@ export async function POST(request: NextRequest) {
         data: {
           routeId,
           time,
+          dayOfWeek: parseInt(dayOfWeek),
           // Note: capacity is stored per departure, not per schedule
           isActive
         },

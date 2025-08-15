@@ -66,7 +66,7 @@ export async function PATCH(
     try {
       const scheduleId = params.id;
       const body = await req.json();
-      const { time, isActive } = body;
+      const { time, dayOfWeek, isActive } = body;
 
       // Check if schedule exists
       const existingSchedule = await prisma.schedule.findUnique({
@@ -78,12 +78,13 @@ export async function PATCH(
         return NextResponse.json({ error: 'Schedule not found' }, { status: 404 });
       }
 
-      // If time is being changed, check for conflicts
-      if (time && time !== existingSchedule.time) {
+      // If time or dayOfWeek is being changed, check for conflicts
+      if ((time && time !== existingSchedule.time) || (dayOfWeek !== undefined && dayOfWeek !== existingSchedule.dayOfWeek)) {
         const conflictingSchedule = await prisma.schedule.findFirst({
           where: {
             routeId: existingSchedule.routeId,
-            time: time,
+            time: time || existingSchedule.time,
+            dayOfWeek: dayOfWeek !== undefined ? parseInt(dayOfWeek) : existingSchedule.dayOfWeek,
             id: { not: scheduleId }
           }
         });
@@ -98,6 +99,7 @@ export async function PATCH(
       // Build update data
       const updateData: any = { updatedAt: new Date() };
       if (time !== undefined) updateData.time = time;
+      if (dayOfWeek !== undefined) updateData.dayOfWeek = parseInt(dayOfWeek);
       // Note: capacity is stored per departure, not per schedule
       if (isActive !== undefined) updateData.isActive = isActive;
 
