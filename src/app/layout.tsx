@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   title: 'Skoot Transportation | Columbia to Charlotte Airport Shuttle Service',
   description: 'Professional shuttle service from Columbia, SC to Charlotte Douglas International Airport (CLT). Daily departures every 2 hours, starting at $31. Book your reliable airport transportation today!',
   keywords: 'Columbia to Charlotte airport, CLT shuttle, airport transportation Columbia SC, Charlotte airport shuttle, Rock Hill shuttle, Fort Jackson transportation, USC airport shuttle, reliable airport transfer',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
   openGraph: {
     title: 'Skoot Transportation - Columbia to Charlotte Airport Shuttle',
     description: 'Professional shuttle service from Columbia, SC to Charlotte Douglas International Airport. Daily departures every 2 hours, starting at $31.',
