@@ -28,7 +28,10 @@ interface DashboardStats {
 interface RecentBooking {
   id: string;
   bookingNumber: string;
-  user: { email: string; firstName: string; lastName: string };
+  user: { email: string; firstName: string; lastName: string } | null;
+  guestFirstName?: string | null;
+  guestLastName?: string | null;
+  guestEmail?: string | null;
   passengerCount: number;
   totalAmount: number;
   status: string;
@@ -345,7 +348,10 @@ export default function AdminDashboard() {
                           </span>
                         </div>
                         <div className="mt-1 text-sm text-gray-600">
-                          {booking.user?.email || `${booking.guestFirstName} ${booking.guestLastName}` || 'Guest'} • {booking.passengerCount} passenger{booking.passengerCount > 1 ? 's' : ''}
+                          {booking.user?.email || 
+                           (booking.guestFirstName && booking.guestLastName ? 
+                            `${booking.guestFirstName} ${booking.guestLastName}` : 
+                            booking.guestEmail || 'Guest')} • {booking.passengerCount} passenger{booking.passengerCount > 1 ? 's' : ''}
                         </div>
                         <div className="mt-1 text-sm text-gray-500">
                           {booking.departure.schedule.route.name} • {formatDate(booking.departure.date)} at {formatTime(booking.departure.schedule.time)}
