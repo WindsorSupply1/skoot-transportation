@@ -633,7 +633,7 @@ export default function SchedulesPage() {
                               <div>
                                 <div className="text-gray-500">Recent Demand</div>
                                 <div className="font-medium">
-                                  {schedule.departures.length > 0 ? (
+                                  {schedule.departures?.length > 0 ? (
                                     `${Math.round(schedule.departures.reduce((sum, d) => sum + (d.bookedSeats / d.capacity), 0) / schedule.departures.length * 100)}% avg occupancy`
                                   ) : (
                                     'No recent data'
