@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
         sortOrder: locationData.sortOrder,
         instructions: locationData.instructions,
         maxCapacity: locationData.maxCapacity,
-        operatingHours: locationData.operatingHours || null,
+        operatingHours: locationData.operatingHours,
       }
     });
 
