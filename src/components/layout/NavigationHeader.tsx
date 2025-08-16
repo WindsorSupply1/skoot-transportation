@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useAuth } from '../auth/AuthProvider';
-import UserProfileMenu from '../auth/UserProfileMenu';
+import { useAuth } from '@/components/auth/AuthProvider';
+import UserProfileMenu from '@/components/auth/UserProfileMenu';
 import { Menu, X, Phone, User, CreditCard } from 'lucide-react';
 
 interface NavigationHeaderProps {
