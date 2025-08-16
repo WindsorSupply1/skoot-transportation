@@ -345,7 +345,7 @@ export default function AdminDashboard() {
                           </span>
                         </div>
                         <div className="mt-1 text-sm text-gray-600">
-                          {booking.user.email} • {booking.passengerCount} passenger{booking.passengerCount > 1 ? 's' : ''}
+                          {booking.user?.email || `${booking.guestFirstName} ${booking.guestLastName}` || 'Guest'} • {booking.passengerCount} passenger{booking.passengerCount > 1 ? 's' : ''}
                         </div>
                         <div className="mt-1 text-sm text-gray-500">
                           {booking.departure.schedule.route.name} • {formatDate(booking.departure.date)} at {formatTime(booking.departure.schedule.time)}
