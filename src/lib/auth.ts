@@ -1,13 +1,13 @@
 import { getServerSession } from 'next-auth/next';
 import { NextRequest } from 'next/server';
 import { prisma } from './prisma';
-import NextAuth from 'next-auth';
+import NextAuth, { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GoogleProvider from 'next-auth/providers/google';
 import { PrismaAdapter } from '@next-auth/prisma-adapter';
 
 // Auth configuration
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
@@ -27,7 +27,7 @@ export const authOptions = {
     {
       id: "amazon",
       name: "Amazon",
-      type: "oauth",
+      type: "oauth" as const,
       authorization: {
         url: "https://www.amazon.com/ap/oa",
         params: {

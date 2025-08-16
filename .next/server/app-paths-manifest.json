@@ -1,6 +1,1 @@
-{
-  "/api/auth/register/route": "app/api/auth/register/route.js",
-  "/api/bookings/route": "app/api/bookings/route.js",
-  "/api/admin/pickup-locations/route": "app/api/admin/pickup-locations/route.js",
-  "/api/stripe/create-payment-intent/route": "app/api/stripe/create-payment-intent/route.js"
-}
+{}
