@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { stripe, verifyWebhookSignature, generateReceiptNumber } from '@/lib/stripe';
-import { sendBookingConfirmationEmail, sendPaymentReceiptEmail } from '@/lib/email';
+import { sendBookingConfirmationEmail, sendEnhancedPaymentReceiptEmail } from '@/lib/email';
 import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
@@ -133,7 +133,7 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
 
     // Send confirmation and receipt emails
     const emailPromises = [
-      sendPaymentReceiptEmail({
+      sendEnhancedPaymentReceiptEmail({
         bookingNumber: booking.bookingNumber,
         receiptNumber,
         customerName: booking.user ? 
