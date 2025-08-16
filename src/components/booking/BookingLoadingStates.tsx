@@ -85,7 +85,8 @@ export function LoadingModal({ isVisible, stage, message }: LoadingModalProps) {
                   ) : (
                     <Icon className={`w-3 h-3 ${isActive ? 'animate-spin' : ''}`} />
                   )}
-                </div>\n                <span className={`text-xs ${
+                </div>
+                <span className={`text-xs ${
                   isActive ? 'text-orange-600' : 
                   isCompleted ? 'text-green-600' : 'text-gray-400'
                 }`}>
