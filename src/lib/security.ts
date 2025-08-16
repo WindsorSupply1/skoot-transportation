@@ -273,11 +273,17 @@ export function isStrongPassword(password: string): { isValid: boolean; errors: 
 // Clean expired rate limit entries (run periodically)
 export function cleanupRateLimitStore(): void {
   const now = Date.now();
-  for (const [key, data] of rateLimitStore.entries()) {
+  const keysToDelete: string[] = [];
+  
+  rateLimitStore.forEach((data, key) => {
     if (now > data.resetTime) {
-      rateLimitStore.delete(key);
+      keysToDelete.push(key);
     }
-  }
+  });
+  
+  keysToDelete.forEach(key => {
+    rateLimitStore.delete(key);
+  });
 }
 
 // Initialize cleanup interval
