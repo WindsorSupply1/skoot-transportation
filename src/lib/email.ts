@@ -280,7 +280,7 @@ export async function sendBookingReminderEmail(booking: BookingWithDetails, remi
 }
 
 // Enhanced payment receipt email with detailed breakdown
-export async function sendPaymentReceiptEmail(receiptData: {
+export async function sendEnhancedPaymentReceiptEmail(receiptData: {
   bookingNumber: string;
   receiptNumber?: string;
   customerName: string;

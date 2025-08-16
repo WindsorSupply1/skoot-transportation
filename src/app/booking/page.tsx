@@ -7,7 +7,7 @@ import TripDetailsStep from '@/components/booking/TripDetailsStep';
 import CustomerDetailsStep from '@/components/booking/CustomerDetailsStep';
 import PaymentStep from '@/components/booking/PaymentStep';
 import BookingConfirmation from '@/components/booking/BookingConfirmation';
-import BookingErrorBoundary from '@/components/booking/BookingErrorBoundary';
+// import BookingErrorBoundary from '@/components/booking/BookingErrorBoundary';
 import { LoadingModal } from '@/components/booking/BookingLoadingStates';
 
 // Types for booking data
@@ -136,7 +136,7 @@ export default function BookingPage() {
   };
 
   return (
-    <BookingErrorBoundary>
+    <div>
       <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
@@ -314,6 +314,6 @@ export default function BookingPage() {
           )}
         </div>
       </div>
-    </BookingErrorBoundary>
+    </div>
   );
 }
