@@ -100,9 +100,10 @@ export async function POST(request: NextRequest) {
       } 
     });
     
+    let fallbackPricing = null;
     if (!defaultPricing) {
       // Fallback to default pricing
-      const fallbackPricing = await prisma.pricingTier.findFirst({ where: { isActive: true } });
+      fallbackPricing = await prisma.pricingTier.findFirst({ where: { isActive: true } });
       if (!fallbackPricing) {
         return NextResponse.json({ error: 'No pricing available' }, { status: 500 });
       }
