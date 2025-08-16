@@ -124,11 +124,13 @@ export async function GET(request: NextRequest) {
       
       currentBookings.forEach(booking => {
         const userId = booking.userId;
-        if (!customerBookingCounts[userId]) {
-          customerBookingCounts[userId] = { bookings: 0, revenue: 0 };
+        if (userId) {
+          if (!customerBookingCounts[userId]) {
+            customerBookingCounts[userId] = { bookings: 0, revenue: 0 };
+          }
+          customerBookingCounts[userId].bookings += 1;
+          customerBookingCounts[userId].revenue += booking.totalAmount;
         }
-        customerBookingCounts[userId].bookings += 1;
-        customerBookingCounts[userId].revenue += booking.totalAmount;
       });
 
       const customerSegments = [
