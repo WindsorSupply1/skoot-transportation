@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { signIn, getSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import SocialLoginButtons from '../../../components/auth/SocialLoginButtons';
 
 export default function SignInPage() {
   const [formData, setFormData] = useState({
@@ -67,6 +68,24 @@ export default function SignInPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-8">
+          {/* Social Login Buttons */}
+          <div className="mb-6">
+            <SocialLoginButtons 
+              redirectTo="/"
+              onError={setError}
+            />
+          </div>
+
+          {/* Divider */}
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or sign in with email</span>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">

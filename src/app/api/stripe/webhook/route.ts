@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
-import { sendBookingConfirmationEmail } from '@/lib/email';
+import { stripe, verifyWebhookSignature, generateReceiptNumber } from '@/lib/stripe';
+import { sendBookingConfirmationEmail, sendPaymentReceiptEmail } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
-});
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -19,7 +15,7 @@ export async function POST(request: NextRequest) {
     let event: Stripe.Event;
 
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      event = verifyWebhookSignature(body, signature, webhookSecret);
     } catch (err) {
       console.error('Webhook signature verification failed:', err);
       return NextResponse.json({ error: 'Webhook Error' }, { status: 400 });
@@ -62,7 +58,15 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
       return;
     }
 
-    // Update payment record
+    // Generate receipt number
+    const receiptNumber = generateReceiptNumber();
+
+    // Calculate Stripe processing fee (estimate)
+    const stripeAmount = paymentIntent.amount;
+    const processingFee = Math.round(stripeAmount * 0.029 + 30); // 2.9% + 30 cents in cents
+    const netAmount = stripeAmount - processingFee;
+
+    // Update payment record with detailed information
     await prisma.payment.update({
       where: {
         bookingId: bookingId
@@ -70,15 +74,19 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
       data: {
         status: 'COMPLETED',
         transactionId: paymentIntent.id,
+        paymentMethod: paymentIntent.payment_method_types?.[0] || 'card',
         processedAt: new Date(),
+        processorFee: processingFee / 100, // Convert back to dollars
+        netAmount: netAmount / 100, // Convert back to dollars
       }
     });
 
-    // Update booking status
+    // Update booking status and add confirmation timestamp
     const booking = await prisma.booking.update({
       where: { id: bookingId },
       data: {
         status: 'PAID',
+        confirmedAt: new Date(),
       },
       include: {
         departure: {
@@ -95,18 +103,90 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
         dropoffLocation: true,
         user: true,
         passengers: true,
-        payment: true
+        payment: true,
+        pricingTier: true,
       }
     });
 
-    // Send confirmation email
-    await sendBookingConfirmationEmail(booking);
+    // Update departure booked seats count
+    await prisma.departure.update({
+      where: { id: booking.departureId },
+      data: {
+        bookedSeats: {
+          increment: booking.passengerCount
+        }
+      }
+    });
 
-    // Log successful payment
-    console.log(`Payment successful for booking ${bookingId}, amount: $${paymentIntent.amount / 100}`);
+    // Update return departure if round trip
+    if (booking.returnDepartureId) {
+      await prisma.departure.update({
+        where: { id: booking.returnDepartureId },
+        data: {
+          bookedSeats: {
+            increment: booking.passengerCount
+          }
+        }
+      });
+    }
+
+    // Send confirmation and receipt emails
+    await Promise.all([
+      sendBookingConfirmationEmail(booking),
+      sendPaymentReceiptEmail({
+        bookingNumber: booking.bookingNumber,
+        receiptNumber,
+        customerName: booking.user ? 
+          `${booking.user.firstName} ${booking.user.lastName}` : 
+          `${booking.guestFirstName} ${booking.guestLastName}`,
+        customerEmail: booking.user?.email || booking.guestEmail!,
+        amount: stripeAmount / 100,
+        currency: paymentIntent.currency.toUpperCase(),
+        paymentDate: new Date(),
+        transactionId: paymentIntent.id,
+        tripDetails: {
+          route: booking.departure.schedule.route.name,
+          date: booking.departure.date.toISOString().split('T')[0],
+          passengers: booking.passengerCount,
+          pickupLocation: booking.pickupLocation.name,
+          dropoffLocation: booking.dropoffLocation.name,
+        },
+        processingFee: processingFee / 100,
+        netAmount: netAmount / 100,
+      })
+    ]);
+
+    // Log successful payment with detailed info
+    console.log(`Payment successful: 
+      Booking: ${bookingId} 
+      Receipt: ${receiptNumber}
+      Amount: $${stripeAmount / 100} 
+      Net: $${netAmount / 100}
+      Fee: $${processingFee / 100}`);
+
+    // Create audit log entry
+    await createAuditLog({
+      action: 'PAYMENT_SUCCESS',
+      bookingId,
+      paymentIntentId: paymentIntent.id,
+      amount: stripeAmount / 100,
+      metadata: {
+        receiptNumber,
+        processingFee: processingFee / 100,
+        netAmount: netAmount / 100,
+      }
+    });
 
   } catch (error) {
     console.error('Error handling payment success:', error);
+    
+    // Create audit log for error
+    await createAuditLog({
+      action: 'PAYMENT_SUCCESS_ERROR',
+      bookingId: paymentIntent.metadata.bookingId,
+      paymentIntentId: paymentIntent.id,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
   }
 }
 
@@ -176,7 +256,43 @@ async function handlePaymentCancellation(paymentIntent: Stripe.PaymentIntent) {
 
     console.log(`Payment cancelled for booking ${bookingId}`);
 
+    // Create audit log
+    await createAuditLog({
+      action: 'PAYMENT_CANCELLED',
+      bookingId,
+      paymentIntentId: paymentIntent.id,
+      metadata: { reason: 'User cancelled payment' }
+    });
+
   } catch (error) {
     console.error('Error handling payment cancellation:', error);
+  }
+}
+
+// Audit log helper function
+async function createAuditLog(data: {
+  action: string;
+  bookingId?: string;
+  paymentIntentId?: string;
+  amount?: number;
+  error?: string;
+  metadata?: any;
+}) {
+  try {
+    // Store in a simple log table or external service
+    // For now, we'll use console logging with structured data
+    const logEntry = {
+      timestamp: new Date().toISOString(),
+      service: 'stripe-webhook',
+      ...data,
+    };
+    
+    console.log('AUDIT_LOG:', JSON.stringify(logEntry));
+    
+    // You could also store this in database:
+    // await prisma.auditLog.create({ data: logEntry });
+    
+  } catch (error) {
+    console.error('Failed to create audit log:', error);
   }
 }

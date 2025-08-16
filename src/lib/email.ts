@@ -279,6 +279,192 @@ export async function sendBookingReminderEmail(booking: BookingWithDetails, remi
   }
 }
 
+// Enhanced payment receipt email with detailed breakdown
+export async function sendPaymentReceiptEmail(receiptData: {
+  bookingNumber: string;
+  receiptNumber?: string;
+  customerName: string;
+  customerEmail: string;
+  amount: number;
+  currency: string;
+  paymentDate: Date;
+  transactionId: string;
+  tripDetails: {
+    route: string;
+    date: string;
+    passengers: number;
+    pickupLocation: string;
+    dropoffLocation: string;
+  };
+  processingFee?: number;
+  netAmount?: number;
+}) {
+  try {
+    const receiptTemplate = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Receipt - SKOOT Transportation</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+    .receipt-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 20px 0; }
+    .amount { font-size: 28px; font-weight: bold; color: #059669; text-align: center; margin: 20px 0; }
+    .details-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+    .details-table th, .details-table td { padding: 10px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    .details-table th { background-color: #f3f4f6; font-weight: 600; }
+    .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #6b7280; }
+    .badge { display: inline-block; background-color: #059669; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚌 SKOOT Transportation</h1>
+      <h2>Payment Receipt</h2>
+    </div>
+    
+    <div class="content">
+      <div class="badge">✅ PAYMENT SUCCESSFUL</div>
+      
+      <div class="receipt-box">
+        <div class="amount">$${receiptData.amount.toFixed(2)} ${receiptData.currency.toUpperCase()}</div>
+        
+        <table class="details-table">
+          <tr><th>Receipt Number:</th><td>${receiptData.receiptNumber || 'N/A'}</td></tr>
+          <tr><th>Booking Number:</th><td>${receiptData.bookingNumber}</td></tr>
+          <tr><th>Customer:</th><td>${receiptData.customerName}</td></tr>
+          <tr><th>Payment Date:</th><td>${receiptData.paymentDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</td></tr>
+          <tr><th>Transaction ID:</th><td>${receiptData.transactionId}</td></tr>
+        </table>
+      </div>
+
+      <div class="receipt-box">
+        <h3>🎫 Trip Details</h3>
+        <table class="details-table">
+          <tr><th>Route:</th><td>${receiptData.tripDetails.route}</td></tr>
+          <tr><th>Travel Date:</th><td>${new Date(receiptData.tripDetails.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</td></tr>
+          <tr><th>Passengers:</th><td>${receiptData.tripDetails.passengers}</td></tr>
+          <tr><th>Pickup Location:</th><td>${receiptData.tripDetails.pickupLocation}</td></tr>
+          <tr><th>Drop-off Location:</th><td>${receiptData.tripDetails.dropoffLocation}</td></tr>
+        </table>
+      </div>
+
+      ${receiptData.processingFee ? `
+      <div class="receipt-box">
+        <h3>💳 Payment Breakdown</h3>
+        <table class="details-table">
+          <tr><th>Ticket Amount:</th><td>$${(receiptData.amount - receiptData.processingFee).toFixed(2)}</td></tr>
+          <tr><th>Processing Fee:</th><td>$${receiptData.processingFee.toFixed(2)}</td></tr>
+          <tr style="border-top: 2px solid #2563eb;"><th><strong>Total Paid:</strong></th><td><strong>$${receiptData.amount.toFixed(2)}</strong></td></tr>
+        </table>
+      </div>
+      ` : ''}
+
+      <div class="receipt-box">
+        <h3>📋 Important Information</h3>
+        <ul>
+          <li>Keep this receipt for your records</li>
+          <li>Arrive 10 minutes before departure time</li>
+          <li>Bring a valid ID for travel</li>
+          <li>Contact us at support@skoot.bike for any questions</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>Thank you for choosing SKOOT Transportation!</p>
+      <p>This is an automated email. Please do not reply to this message.</p>
+      <p>© ${new Date().getFullYear()} SKOOT Transportation. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    const textReceipt = `
+SKOOT Transportation - Payment Receipt
+=====================================
+
+✅ PAYMENT SUCCESSFUL
+
+Amount Paid: $${receiptData.amount.toFixed(2)} ${receiptData.currency.toUpperCase()}
+
+Receipt Details:
+- Receipt Number: ${receiptData.receiptNumber || 'N/A'}
+- Booking Number: ${receiptData.bookingNumber}
+- Customer: ${receiptData.customerName}
+- Payment Date: ${receiptData.paymentDate.toLocaleDateString()}
+- Transaction ID: ${receiptData.transactionId}
+
+Trip Details:
+- Route: ${receiptData.tripDetails.route}
+- Travel Date: ${new Date(receiptData.tripDetails.date).toLocaleDateString()}
+- Passengers: ${receiptData.tripDetails.passengers}
+- Pickup: ${receiptData.tripDetails.pickupLocation}
+- Drop-off: ${receiptData.tripDetails.dropoffLocation}
+
+${receiptData.processingFee ? `
+Payment Breakdown:
+- Ticket Amount: $${(receiptData.amount - receiptData.processingFee).toFixed(2)}
+- Processing Fee: $${receiptData.processingFee.toFixed(2)}
+- Total Paid: $${receiptData.amount.toFixed(2)}
+` : ''}
+
+Important Information:
+- Keep this receipt for your records
+- Arrive 10 minutes before departure time
+- Bring a valid ID for travel
+- Contact us at support@skoot.bike for questions
+
+Thank you for choosing SKOOT Transportation!
+`;
+
+    const mailOptions = {
+      from: `"SKOOT Transportation" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
+      to: receiptData.customerEmail,
+      subject: `Payment Receipt ${receiptData.bookingNumber} - SKOOT Transportation`,
+      html: receiptTemplate,
+      text: textReceipt,
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+
+    // Log email sent
+    await prisma.emailLog.create({
+      data: {
+        toEmail: receiptData.customerEmail,
+        fromEmail: process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@skoot.bike',
+        subject: `Payment Receipt ${receiptData.bookingNumber} - SKOOT Transportation`,
+        status: 'SENT',
+        sentAt: new Date(),
+      }
+    });
+
+    console.log('Payment receipt email sent:', result.messageId);
+    return true;
+
+  } catch (error) {
+    console.error('Error sending payment receipt email:', error);
+    
+    // Log email failure
+    await prisma.emailLog.create({
+      data: {
+        toEmail: receiptData.customerEmail,
+        fromEmail: process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@skoot.bike',
+        subject: `Payment Receipt ${receiptData.bookingNumber} - SKOOT Transportation`,
+        status: 'FAILED',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      }
+    });
+
+    return false;
+  }
+}
+
 function formatTime(timeString: string): string {
   const [hours, minutes] = timeString.split(':').map(Number);
   const date = new Date();

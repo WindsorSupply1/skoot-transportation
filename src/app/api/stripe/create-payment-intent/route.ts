@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
+import { stripe, formatAmountForStripe, generateReceiptNumber } from '@/lib/stripe';
 
 export const dynamic = 'force-dynamic';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
-});
+// Use the stripe instance from lib/stripe.ts
 
 export async function POST(request: NextRequest) {
   try {
@@ -65,13 +64,13 @@ export async function POST(request: NextRequest) {
       metadata: {
         bookingId: booking.id,
         bookingNumber: booking.bookingNumber,
-        customerEmail: booking.user.email,
+        customerEmail: booking.user?.email || booking.guestEmail || '',
         departureDate: booking.departure.date.toISOString(),
         passengerCount: booking.passengerCount.toString(),
         route: booking.departure.schedule.route.name
       },
       description: `Skoot Transportation - ${booking.departure.schedule.route.name} - ${booking.passengerCount} passenger(s)`,
-      receipt_email: booking.user.email,
+      receipt_email: booking.user?.email || booking.guestEmail || undefined,
       automatic_payment_methods: {
         enabled: true,
       },

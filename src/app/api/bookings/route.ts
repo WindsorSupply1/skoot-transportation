@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -8,28 +9,48 @@ const BookingSchema = z.object({
   departureId: z.string(),
   returnDepartureId: z.string().optional(),
   pickupLocationId: z.string(),
+  dropoffLocationId: z.string().optional(),
   passengerCount: z.number().min(1).max(15),
-  customerType: z.enum(['REGULAR', 'STUDENT', 'MILITARY', 'LEGACY']),
-  contactInfo: z.object({
+  customerType: z.enum(['REGULAR', 'STUDENT', 'MILITARY', 'LEGACY']).optional().default('REGULAR'),
+  
+  // Guest booking fields (only required if not authenticated)
+  guestInfo: z.object({
     firstName: z.string().min(1),
     lastName: z.string().min(1),
     email: z.string().email(),
     phone: z.string().min(10),
-  }),
+    createAccount: z.boolean().optional().default(false),
+  }).optional(),
+  
   passengers: z.array(z.object({
     firstName: z.string().min(1),
     lastName: z.string().min(1),
+    age: z.number().optional(),
     dateOfBirth: z.string().optional(),
-  })),
-  extraLuggage: z.number().min(0).max(10),
-  pets: z.number().min(0).max(5),
+  })).min(1),
+  
+  extraLuggage: z.number().min(0).max(10).optional().default(0),
+  pets: z.number().min(0).max(5).optional().default(0),
   specialRequests: z.string().optional(),
+  
+  // Payment information
+  paymentMethodId: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const validatedData = BookingSchema.parse(body);
+
+    // Get current user (if authenticated)
+    const currentUser = await getCurrentUser();
+    
+    // Validate guest info if not authenticated
+    if (!currentUser && !validatedData.guestInfo) {
+      return NextResponse.json({ 
+        error: 'Guest information is required for unauthenticated bookings' 
+      }, { status: 400 });
+    }
 
     // Check departure availability
     const departure = await prisma.departure.findUnique({
@@ -62,8 +83,8 @@ export async function POST(request: NextRequest) {
 
     const basePrice = basePrices[validatedData.customerType];
     const passengerCost = basePrice * validatedData.passengerCount;
-    const luggageCost = validatedData.extraLuggage * 5;
-    const petCost = validatedData.pets * 10;
+    const luggageCost = (validatedData.extraLuggage || 0) * 5;
+    const petCost = (validatedData.pets || 0) * 10;
     const subtotal = passengerCost + luggageCost + petCost;
 
     // Round trip discount (10% off total)
@@ -72,42 +93,83 @@ export async function POST(request: NextRequest) {
     const total = isRoundTrip ? (subtotal * 2) - discount : subtotal;
 
     // Get default pricing tier
-    const defaultPricing = await prisma.pricingTier.findFirst({ where: { isActive: true } });
-    if (!defaultPricing) {
-      return NextResponse.json({ error: 'No pricing available' }, { status: 500 });
-    }
-    
-    // Create temporary guest user
-    const guestUser = await prisma.user.create({
-      data: {
-        email: validatedData.contactInfo.email,
-        firstName: validatedData.passengers[0].firstName,
-        lastName: validatedData.passengers[0].lastName,
-        phone: validatedData.contactInfo.phone,
-        isAdmin: false
-      }
+    const defaultPricing = await prisma.pricingTier.findFirst({ 
+      where: { 
+        isActive: true,
+        customerType: validatedData.customerType
+      } 
     });
+    
+    if (!defaultPricing) {
+      // Fallback to default pricing
+      const fallbackPricing = await prisma.pricingTier.findFirst({ where: { isActive: true } });
+      if (!fallbackPricing) {
+        return NextResponse.json({ error: 'No pricing available' }, { status: 500 });
+      }
+    }
+
+    let bookingUserId: string | null = currentUser?.id || null;
+    let isGuestBooking = !currentUser;
+    
+    // For guest bookings, determine if we should create a user account
+    if (isGuestBooking && validatedData.guestInfo?.createAccount) {
+      // Check if user already exists with this email
+      const existingUser = await prisma.user.findUnique({
+        where: { email: validatedData.guestInfo.email.toLowerCase() }
+      });
+
+      if (existingUser) {
+        bookingUserId = existingUser.id;
+        isGuestBooking = false;
+      } else {
+        // Create new user account
+        const newUser = await prisma.user.create({
+          data: {
+            email: validatedData.guestInfo.email.toLowerCase(),
+            firstName: validatedData.guestInfo.firstName,
+            lastName: validatedData.guestInfo.lastName,
+            phone: validatedData.guestInfo.phone,
+            customerType: validatedData.customerType,
+            emailVerified: new Date(),
+          }
+        });
+        bookingUserId = newUser.id;
+        isGuestBooking = false;
+      }
+    }
     
     // Create booking
     const booking = await prisma.booking.create({
       data: {
-        userId: guestUser.id,
+        userId: bookingUserId,
         routeId: departure.schedule.routeId,
         departureId: validatedData.departureId,
         returnDepartureId: validatedData.returnDepartureId,
         pickupLocationId: validatedData.pickupLocationId,
-        dropoffLocationId: validatedData.pickupLocationId,
-        pricingTierId: defaultPricing.id,
+        dropoffLocationId: validatedData.dropoffLocationId || validatedData.pickupLocationId,
+        pricingTierId: (defaultPricing || fallbackPricing!).id,
         passengerCount: validatedData.passengerCount,
         totalAmount: total,
+        extraLuggageBags: validatedData.extraLuggage || 0,
+        extraLuggageFee: luggageCost,
+        petCount: validatedData.pets || 0,
+        petFee: petCost,
         status: 'PENDING',
         isRoundTrip: isRoundTrip,
+        isGuestBooking: isGuestBooking,
+        guestEmail: isGuestBooking ? validatedData.guestInfo?.email : null,
+        guestPhone: isGuestBooking ? validatedData.guestInfo?.phone : null,
+        guestFirstName: isGuestBooking ? validatedData.guestInfo?.firstName : null,
+        guestLastName: isGuestBooking ? validatedData.guestInfo?.lastName : null,
         specialRequests: validatedData.specialRequests,
         passengers: {
-          create: validatedData.passengers.map((passenger, index) => ({
+          create: validatedData.passengers.map((passenger) => ({
             firstName: passenger.firstName,
             lastName: passenger.lastName,
-            dateOfBirth: passenger.dateOfBirth ? new Date(passenger.dateOfBirth) : null,
+            age: passenger.age,
+            email: passenger.age && passenger.age >= 18 ? 
+              (isGuestBooking ? validatedData.guestInfo?.email : currentUser?.email) : 
+              null,
             seatNumber: null,
             checkedIn: false,
           }))
@@ -127,6 +189,7 @@ export async function POST(request: NextRequest) {
         pickupLocation: true,
         dropoffLocation: true,
         passengers: true,
+        user: true,
       }
     });
 
@@ -136,6 +199,7 @@ export async function POST(request: NextRequest) {
         id: booking.id,
         bookingNumber: booking.bookingNumber,
         totalAmount: booking.totalAmount,
+        isGuestBooking: booking.isGuestBooking,
         departure: {
           date: booking.departure.date,
           time: booking.departure.schedule.time,
@@ -150,6 +214,7 @@ export async function POST(request: NextRequest) {
         dropoffLocation: booking.dropoffLocation.name,
         passengers: booking.passengers,
         paymentRequired: booking.totalAmount,
+        accountCreated: !isGuestBooking && validatedData.guestInfo?.createAccount,
       }
     });
 

@@ -54,6 +54,20 @@ interface Booking {
       };
     };
   };
+  pickupLocation?: {
+    id: string;
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+  };
+  dropoffLocation?: {
+    id: string;
+    name: string;
+    address: string;
+    city: string;
+    state: string;
+  };
   passengers: Array<{
     id: string;
     firstName: string;
@@ -70,6 +84,8 @@ interface BookingFilters {
   dateFrom: string;
   dateTo: string;
   route: string;
+  pickupLocation: string;
+  dropoffLocation: string;
   search: string;
 }
 
@@ -88,8 +104,11 @@ export default function BookingsPage() {
     dateFrom: '',
     dateTo: '',
     route: 'all',
+    pickupLocation: 'all',
+    dropoffLocation: 'all',
     search: ''
   });
+  const [locations, setLocations] = useState<any[]>([]);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -100,6 +119,7 @@ export default function BookingsPage() {
     }
 
     fetchBookings();
+    fetchLocations();
   }, [session, status, router]);
 
   useEffect(() => {
@@ -124,6 +144,18 @@ export default function BookingsPage() {
     }
   };
 
+  const fetchLocations = async () => {
+    try {
+      const response = await fetch('/api/locations?type=all&includeInactive=true');
+      if (response.ok) {
+        const data = await response.json();
+        setLocations(data.locations || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch locations:', error);
+    }
+  };
+
   const applyFilters = () => {
     let filtered = [...bookings];
 
@@ -143,6 +175,16 @@ export default function BookingsPage() {
     // Route filter
     if (filters.route !== 'all') {
       filtered = filtered.filter(booking => booking.departure.schedule.route.id === filters.route);
+    }
+
+    // Pickup location filter
+    if (filters.pickupLocation !== 'all') {
+      filtered = filtered.filter(booking => booking.pickupLocation?.id === filters.pickupLocation);
+    }
+
+    // Dropoff location filter
+    if (filters.dropoffLocation !== 'all') {
+      filtered = filtered.filter(booking => booking.dropoffLocation?.id === filters.dropoffLocation);
     }
 
     // Search filter
@@ -404,7 +446,7 @@ export default function BookingsPage() {
 
           {showFilters && (
             <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
                   <div className="relative">
@@ -436,6 +478,38 @@ export default function BookingsPage() {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Pickup Location</label>
+                  <select
+                    value={filters.pickupLocation}
+                    onChange={(e) => setFilters({ ...filters, pickupLocation: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                  >
+                    <option value="all">All Pickup Locations</option>
+                    {locations.filter(loc => loc.isPickup).map((location) => (
+                      <option key={location.id} value={location.id}>
+                        {location.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Dropoff Location</label>
+                  <select
+                    value={filters.dropoffLocation}
+                    onChange={(e) => setFilters({ ...filters, dropoffLocation: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                  >
+                    <option value="all">All Dropoff Locations</option>
+                    {locations.filter(loc => loc.isDropoff).map((location) => (
+                      <option key={location.id} value={location.id}>
+                        {location.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
                   <input
                     type="date"
@@ -462,6 +536,8 @@ export default function BookingsPage() {
                       dateFrom: '',
                       dateTo: '',
                       route: 'all',
+                      pickupLocation: 'all',
+                      dropoffLocation: 'all',
                       search: ''
                     })}
                     className="w-full px-3 py-2 text-sm text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300"

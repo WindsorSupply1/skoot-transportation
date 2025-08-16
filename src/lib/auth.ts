@@ -3,10 +3,51 @@ import { NextRequest } from 'next/server';
 import { prisma } from './prisma';
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
 
 // Auth configuration
 export const authOptions = {
+  adapter: PrismaAdapter(prisma),
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+          scope: "openid email profile"
+        }
+      }
+    }),
+    // Custom Amazon OAuth Provider
+    {
+      id: "amazon",
+      name: "Amazon",
+      type: "oauth",
+      authorization: {
+        url: "https://www.amazon.com/ap/oa",
+        params: {
+          scope: "profile",
+          response_type: "code",
+        },
+      },
+      token: "https://api.amazon.com/auth/o2/token",
+      userinfo: "https://api.amazon.com/user/profile",
+      clientId: process.env.AMAZON_CLIENT_ID,
+      clientSecret: process.env.AMAZON_CLIENT_SECRET,
+      profile(profile: any) {
+        return {
+          id: profile.user_id,
+          name: profile.name,
+          email: profile.email,
+          image: null, // Amazon doesn't provide profile images
+        };
+      },
+    },
     CredentialsProvider({
       name: 'credentials',
       credentials: {
@@ -34,6 +75,7 @@ export const authOptions = {
             id: user.id,
             email: user.email,
             name: `${user.firstName} ${user.lastName}`,
+            image: user.image,
             isAdmin: user.isAdmin,
           };
         } catch (error) {
@@ -45,19 +87,72 @@ export const authOptions = {
   ],
   session: {
     strategy: 'jwt' as const,
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
+  },
+  jwt: {
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async jwt({ token, user }: any) {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === 'google' || account?.provider === 'amazon') {
+        try {
+          // Check if user already exists
+          let existingUser = await prisma.user.findUnique({
+            where: { email: user.email! }
+          });
+
+          if (!existingUser) {
+            // Create new user from OAuth profile
+            const names = user.name?.split(' ') || ['', ''];
+            existingUser = await prisma.user.create({
+              data: {
+                email: user.email!,
+                firstName: names[0] || 'Guest',
+                lastName: names.slice(1).join(' ') || 'User',
+                image: user.image,
+                emailVerified: new Date(),
+                customerType: 'REGULAR'
+              }
+            });
+          } else if (!existingUser.image && user.image) {
+            // Update existing user with profile image
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: { image: user.image }
+            });
+          }
+          
+          return true;
+        } catch (error) {
+          console.error(`Error during ${account.provider} sign in:`, error);
+          return false;
+        }
+      }
+      
+      return true;
+    },
+    async jwt({ token, user, account }) {
       if (user) {
-        token.isAdmin = user.isAdmin;
-        token.userId = user.id;
+        // Fetch user data from database to get latest info
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email! }
+        });
+        
+        if (dbUser) {
+          token.isAdmin = dbUser.isAdmin;
+          token.userId = dbUser.id;
+          token.firstName = dbUser.firstName;
+          token.lastName = dbUser.lastName;
+        }
       }
       return token;
     },
-    async session({ session, token }: any) {
+    async session({ session, token }) {
       if (token) {
         session.user.id = token.userId as string;
         session.user.isAdmin = token.isAdmin as boolean;
+        session.user.name = `${token.firstName} ${token.lastName}`;
       }
       return session;
     },
@@ -66,6 +161,37 @@ export const authOptions = {
     signIn: '/auth/signin',
     error: '/auth/error',
   },
+  cookies: {
+    sessionToken: {
+      name: `__Secure-next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      }
+    },
+    callbackUrl: {
+      name: `__Secure-next-auth.callback-url`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      }
+    },
+    csrfToken: {
+      name: `__Host-next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      }
+    },
+  },
+  useSecureCookies: process.env.NODE_ENV === 'production',
+  debug: process.env.NODE_ENV === 'development',
 };
 
 // Auth configuration type

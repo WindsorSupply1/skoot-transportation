@@ -1,1 +1,0 @@
-{"version":1,"functions":{"/api/admin/dashboard/stats":{},"/api/admin/bookings":{},"/api/admin/departures/today":{},"/api/admin/reports/revenue":{},"/api/locations":{},"/api/departures":{},"/api/admin/reports/occupancy":{},"/api/pricing":{},"/api/bookings":{},"/api/stripe/create-payment-intent":{},"/api/stripe/webhook":{}}}

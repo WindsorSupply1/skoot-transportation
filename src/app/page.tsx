@@ -2,8 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { Phone, Mail } from 'lucide-react';
+import NavigationHeader from '../../components/layout/NavigationHeader';
+import { useAuth } from '../../components/auth/AuthProvider';
+import Link from 'next/link';
 
 export default function HomePage() {
+  const { isAuthenticated, user } = useAuth();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showHeaderBooking, setShowHeaderBooking] = useState(false);
@@ -131,28 +135,13 @@ export default function HomePage() {
           transform: translateY(0);
         }
 
-        .navbar {
-          position: fixed;
-          top: 0;
-          width: 100%;
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          padding: 15px 0;
-          z-index: 1000;
-          transition: all 0.3s ease;
-          border-bottom: 1px solid rgba(192, 192, 192, 0.2);
-        }
-
-        .navbar.hidden {
-          transform: translateY(-100%);
-        }
 
         .promo-banner {
           background: linear-gradient(135deg, #FF6600 0%, #CC5200 100%);
           color: white;
           text-align: center;
           padding: 12px;
-          margin-top: 70px;
+          margin-top: 64px;
           font-weight: bold;
           animation: bannerPulse 2s infinite;
         }
@@ -415,21 +404,12 @@ export default function HomePage() {
       </div>
 
       {/* Sticky Book Now Button */}
-      <a href="#book" className="sticky-book-btn">Book Now - Starting $31</a>
+      <Link href="/booking" className="sticky-book-btn">
+        {isAuthenticated ? 'Book Another Trip' : 'Book Now - Starting $31'}
+      </Link>
 
       {/* Navigation */}
-      <nav className={`navbar ${showHeaderBooking ? 'hidden' : ''}`}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <a href="#" style={{ fontSize: '2em', fontWeight: 'bold', color: '#FF6600', textDecoration: 'none' }}>SKOOT</a>
-          <ul style={{ display: 'flex', listStyle: 'none', gap: '30px' }}>
-            <li><a href="#home" style={{ textDecoration: 'none', color: '#333333', fontWeight: '500' }}>Home</a></li>
-            <li><a href="#schedule" style={{ textDecoration: 'none', color: '#333333', fontWeight: '500' }}>Schedule</a></li>
-            <li><a href="#pricing" style={{ textDecoration: 'none', color: '#333333', fontWeight: '500' }}>Pricing</a></li>
-            <li><a href="#faq" style={{ textDecoration: 'none', color: '#333333', fontWeight: '500' }}>FAQ</a></li>
-          </ul>
-          <a href="#book" style={{ background: '#28A745', color: 'white', padding: '12px 24px', borderRadius: '25px', textDecoration: 'none', fontWeight: 'bold' }}>Book Now</a>
-        </div>
-      </nav>
+      <NavigationHeader transparent={!showHeaderBooking} />
 
       {/* Promo Banner */}
       <div className="promo-banner">
@@ -464,62 +444,77 @@ export default function HomePage() {
           </div>
           
           <div className="booking-widget" id="book">
-            <h3 style={{ color: '#FF6600', marginBottom: '25px', fontSize: '1.5em', textAlign: 'center' }}>Reserve Your Seat</h3>
-            <form onSubmit={handleBookingSubmit} style={{ display: 'grid', gap: '20px' }}>
-              <div>
-                <label style={{ marginBottom: '8px', fontWeight: 'bold', color: '#333333', display: 'block' }}>Travel Date</label>
-                <input type="date" style={{ padding: '15px', border: '2px solid #E8E8E8', borderRadius: '10px', fontSize: '16px', width: '100%' }} required />
-              </div>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                <div>
-                  <label style={{ marginBottom: '8px', fontWeight: 'bold', color: '#333333', display: 'block' }}>Departure Time</label>
-                  <select style={{ padding: '15px', border: '2px solid #E8E8E8', borderRadius: '10px', fontSize: '16px', width: '100%' }} required>
-                    <option value="">Select Time</option>
-                    <option value="6:00 AM">6:00 AM</option>
-                    <option value="8:00 AM">8:00 AM</option>
-                    <option value="10:00 AM">10:00 AM</option>
-                    <option value="12:00 PM">12:00 PM</option>
-                    <option value="2:00 PM">2:00 PM</option>
-                    <option value="6:00 PM">6:00 PM</option>
-                    <option value="8:00 PM">8:00 PM</option>
-                  </select>
+            <h3 style={{ color: '#FF6600', marginBottom: '25px', fontSize: '1.5em', textAlign: 'center' }}>Ready to Book Your Trip?</h3>
+            <p style={{ textAlign: 'center', color: '#666', marginBottom: '30px', fontSize: '1.1em' }}>
+              Secure booking with real-time availability, pickup location selection, and instant confirmation.
+            </p>
+            {isAuthenticated ? (
+              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                <p style={{ color: '#666', marginBottom: '15px', fontSize: '1em' }}>
+                  Welcome back, {user?.name?.split(' ')[0]}! 
+                </p>
+                <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <Link 
+                    href="/booking"
+                    style={{ 
+                      background: 'linear-gradient(135deg, #FF6600 0%, #E55A00 100%)', 
+                      color: 'white', 
+                      padding: '15px 30px', 
+                      border: 'none', 
+                      borderRadius: '12px', 
+                      fontSize: '1.1em', 
+                      fontWeight: 'bold', 
+                      textDecoration: 'none',
+                      display: 'inline-block',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 4px 15px rgba(255, 102, 0, 0.3)'
+                    }}
+                  >
+                    Book New Trip
+                  </Link>
+                  <Link 
+                    href="/bookings"
+                    style={{ 
+                      background: 'white', 
+                      color: '#FF6600', 
+                      padding: '15px 30px', 
+                      border: '2px solid #FF6600', 
+                      borderRadius: '12px', 
+                      fontSize: '1.1em', 
+                      fontWeight: 'bold', 
+                      textDecoration: 'none',
+                      display: 'inline-block',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    My Bookings
+                  </Link>
                 </div>
-                
-                <div>
-                  <label style={{ marginBottom: '8px', fontWeight: 'bold', color: '#333333', display: 'block' }}>Passengers</label>
-                  <select style={{ padding: '15px', border: '2px solid #E8E8E8', borderRadius: '10px', fontSize: '16px', width: '100%' }} required>
-                    <option value="">Select</option>
-                    <option value="1">1 Passenger</option>
-                    <option value="2">2 Passengers</option>
-                    <option value="3">3 Passengers</option>
-                    <option value="4">4 Passengers</option>
-                    <option value="5+">5+ Passengers</option>
-                  </select>
-                </div>
               </div>
-              
-              <div>
-                <label style={{ marginBottom: '8px', fontWeight: 'bold', color: '#333333', display: 'block' }}>Ticket Type</label>
-                <select style={{ padding: '15px', border: '2px solid #E8E8E8', borderRadius: '10px', fontSize: '16px', width: '100%' }} required>
-                  <option value="">Select Rate</option>
-                  <option value="firsthundred">First 100 Rate - $31 (Limited Time!)</option>
-                  <option value="regular">Regular Rate - $35</option>
-                  <option value="student">Student Rate - $32 (Forever!)</option>
-                  <option value="military">Military Rate - $32 (Forever!)</option>
-                  <option value="roundtrip">Round Trip - $62 (Save $8)</option>
-                </select>
-              </div>
-              
-              <button type="submit" disabled={isBooking} style={{ background: isBooking ? '#ccc' : 'linear-gradient(135deg, #28A745 0%, #218838 100%)', color: 'white', padding: '18px', border: 'none', borderRadius: '10px', fontSize: '1.2em', fontWeight: 'bold', cursor: isBooking ? 'not-allowed' : 'pointer', marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                {isBooking ? (
-                  <>
-                    <div className="skoot-loader"></div>
-                    Processing Reservation...
-                  </>
-                ) : 'Reserve My Seat - $31'}
-              </button>
-            </form>
+            ) : (
+              <Link 
+                href="/booking" 
+                style={{ 
+                  background: 'linear-gradient(135deg, #FF6600 0%, #E55A00 100%)', 
+                  color: 'white', 
+                  padding: '20px 40px', 
+                  border: 'none', 
+                  borderRadius: '12px', 
+                  fontSize: '1.3em', 
+                  fontWeight: 'bold', 
+                  textDecoration: 'none',
+                  display: 'block',
+                  textAlign: 'center',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px rgba(255, 102, 0, 0.3)'
+                }}
+              >
+                Book Your Seat - Starting $31
+              </Link>
+            )}
+            <p style={{ textAlign: 'center', color: '#888', marginTop: '15px', fontSize: '0.9em' }}>
+              ✓ Secure Payment ✓ Instant Confirmation ✓ Choose Pickup Location
+            </p>
           </div>
         </div>
       </section>
@@ -707,9 +702,9 @@ export default function HomePage() {
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
           <h2 style={{ fontSize: '2.5em', marginBottom: '20px' }}>First 100 Customers Special</h2>
           <p style={{ fontSize: '1.2em', marginBottom: '30px', opacity: 0.9 }}>Lock in the $31 rate forever! Join our founding members and never pay more.</p>
-          <a href="#book" style={{ background: 'white', color: '#FF6600', padding: '18px 40px', border: 'none', borderRadius: '30px', fontSize: '1.2em', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'none', display: 'inline-block', transition: 'all 0.3s ease' }}>
-            Secure Your Spot
-          </a>
+          <Link href="/booking" style={{ background: 'white', color: '#FF6600', padding: '18px 40px', border: 'none', borderRadius: '30px', fontSize: '1.2em', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'none', display: 'inline-block', transition: 'all 0.3s ease' }}>
+            {isAuthenticated ? 'Book Your Next Trip' : 'Secure Your Spot'}
+          </Link>
         </div>
       </section>
 
@@ -736,7 +731,7 @@ export default function HomePage() {
               <h3 style={{ color: '#FF6600', marginBottom: '15px' }}>Quick Links</h3>
               <a href="#schedule" style={{ color: '#C0C0C0', textDecoration: 'none', marginBottom: '5px', display: 'block' }}>Schedule</a>
               <a href="#pricing" style={{ color: '#C0C0C0', textDecoration: 'none', marginBottom: '5px', display: 'block' }}>Pricing</a>
-              <a href="#book" style={{ color: '#C0C0C0', textDecoration: 'none', marginBottom: '5px', display: 'block' }}>Book Now</a>
+              <a href="/booking" style={{ color: '#C0C0C0', textDecoration: 'none', marginBottom: '5px', display: 'block' }}>Book Now</a>
               <a href="#faq" style={{ color: '#C0C0C0', textDecoration: 'none', marginBottom: '5px', display: 'block' }}>FAQ</a>
             </div>
           </div>
