@@ -132,8 +132,7 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
     }
 
     // Send confirmation and receipt emails
-    await Promise.all([
-      sendBookingConfirmationEmail(booking),
+    const emailPromises = [
       sendPaymentReceiptEmail({
         bookingNumber: booking.bookingNumber,
         receiptNumber,
@@ -155,7 +154,14 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
         processingFee: processingFee / 100,
         netAmount: netAmount / 100,
       })
-    ]);
+    ];
+
+    // Only send booking confirmation email if user exists (not guest booking)
+    if (booking.user) {
+      emailPromises.push(sendBookingConfirmationEmail(booking as any));
+    }
+
+    await Promise.all(emailPromises);
 
     // Log successful payment with detailed info
     console.log(`Payment successful: 
