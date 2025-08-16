@@ -45,7 +45,7 @@ export const authOptions: NextAuthOptions = {
           name: profile.name,
           email: profile.email,
           image: null, // Amazon doesn't provide profile images
-        };
+        } as any;
       },
     },
     CredentialsProvider({
