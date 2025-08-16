@@ -77,7 +77,6 @@ export async function POST(request: NextRequest) {
           origin: 'Columbia, SC',
           destination: 'Charleston, SC',
           duration: 120, // 2 hours in minutes
-          distance: 115, // miles
           price: 35,
           isActive: true,
         }
@@ -88,7 +87,6 @@ export async function POST(request: NextRequest) {
           origin: 'Charleston, SC',
           destination: 'Columbia, SC',
           duration: 120,
-          distance: 115,
           price: 35,
           isActive: true,
         }
