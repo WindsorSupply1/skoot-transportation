@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
           data: {
             routeId: route.id,
             time: time,
+            dayOfWeek: 1, // Monday
             capacity: 20,
             isActive: true,
           }
