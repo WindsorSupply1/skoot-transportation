@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { SessionManager } from '@/lib/session';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
 const updateProfileSchema = z.object({
   firstName: z.string().min(2),
   lastName: z.string().min(2),

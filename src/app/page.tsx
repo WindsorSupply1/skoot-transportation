@@ -9,6 +9,7 @@ import { useAuth } from '../../components/auth/AuthProvider';
 import Link from 'next/link';
 
 export default function HomePage() {
+  const [mounted, setMounted] = useState(false);
   const { isAuthenticated, user } = useAuth();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -92,6 +93,8 @@ export default function HomePage() {
   };
 
   useEffect(() => {
+    setMounted(true);
+    
     const handleScroll = () => {
       if (window.scrollY > 800) {
         setShowHeaderBooking(true);
@@ -407,7 +410,7 @@ export default function HomePage() {
 
       {/* Sticky Book Now Button */}
       <Link href="/booking" className="sticky-book-btn">
-        {isAuthenticated ? 'Book Another Trip' : 'Book Now - Starting $31'}
+        {mounted && isAuthenticated ? 'Book Another Trip' : 'Book Now - Starting $31'}
       </Link>
 
       {/* Navigation */}
@@ -450,7 +453,7 @@ export default function HomePage() {
             <p style={{ textAlign: 'center', color: '#666', marginBottom: '30px', fontSize: '1.1em' }}>
               Secure booking with real-time availability, pickup location selection, and instant confirmation.
             </p>
-            {isAuthenticated ? (
+            {mounted && isAuthenticated ? (
               <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                 <p style={{ color: '#666', marginBottom: '15px', fontSize: '1em' }}>
                   Welcome back, {user?.name?.split(' ')[0]}! 
@@ -705,7 +708,7 @@ export default function HomePage() {
           <h2 style={{ fontSize: '2.5em', marginBottom: '20px' }}>First 100 Customers Special</h2>
           <p style={{ fontSize: '1.2em', marginBottom: '30px', opacity: 0.9 }}>Lock in the $31 rate forever! Join our founding members and never pay more.</p>
           <Link href="/booking" style={{ background: 'white', color: '#FF6600', padding: '18px 40px', border: 'none', borderRadius: '30px', fontSize: '1.2em', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'none', display: 'inline-block', transition: 'all 0.3s ease' }}>
-            {isAuthenticated ? 'Book Your Next Trip' : 'Secure Your Spot'}
+            {mounted && isAuthenticated ? 'Book Your Next Trip' : 'Secure Your Spot'}
           </Link>
         </div>
       </section>
