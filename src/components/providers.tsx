@@ -2,7 +2,7 @@
 
 import { SessionProvider } from 'next-auth/react';
 import { ReactNode } from 'react';
-import AuthProvider from '../../components/auth/AuthProvider';
+import AuthProvider from './auth/AuthProvider';
 
 interface ProvidersProps {
   children: ReactNode;
