@@ -155,6 +155,7 @@ model Schedule {
   routeId   String
   dayOfWeek Int    // 0 = Sunday, 1 = Monday, etc.
   time      String // Format: "HH:MM" (24-hour format)
+  capacity  Int    @default(15) // Default capacity for departures created from this schedule
   isActive  Boolean @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

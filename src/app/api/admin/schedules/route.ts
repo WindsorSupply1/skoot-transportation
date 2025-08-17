@@ -41,6 +41,7 @@ export async function GET(request: NextRequest) {
       const schedulesWithStats = schedules.map(schedule => ({
         id: schedule.id,
         time: schedule.time,
+        capacity: schedule.capacity,
         isActive: schedule.isActive,
         route: {
           id: schedule.route.id,
@@ -74,6 +75,7 @@ export async function POST(request: NextRequest) {
       const {
         routeId,
         time,
+        capacity = 15, // Default capacity
         dayOfWeek = 1, // Default to Monday
         isActive = true
       } = await req.json();
@@ -113,8 +115,8 @@ export async function POST(request: NextRequest) {
         data: {
           routeId,
           time,
+          capacity: parseInt(capacity),
           dayOfWeek: parseInt(dayOfWeek),
-          // Note: capacity is stored per departure, not per schedule
           isActive
         },
         include: {
@@ -140,6 +142,7 @@ export async function PUT(request: NextRequest) {
       const {
         id,
         time,
+        capacity,
         dayOfWeek,
         isActive
       } = await req.json();
@@ -150,6 +153,7 @@ export async function PUT(request: NextRequest) {
 
       const updateData: any = {};
       if (time !== undefined) updateData.time = time;
+      if (capacity !== undefined) updateData.capacity = parseInt(capacity);
       if (dayOfWeek !== undefined) updateData.dayOfWeek = dayOfWeek;
       if (isActive !== undefined) updateData.isActive = isActive;
 
