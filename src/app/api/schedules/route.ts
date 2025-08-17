@@ -46,28 +46,30 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform data to include computed fields
-    const schedulesWithStats = schedules.map(schedule => ({
-      id: schedule.id,
-      time: schedule.time,
-      dayOfWeek: schedule.dayOfWeek,
-      capacity: schedule.capacity,
-      isActive: schedule.isActive,
-      route: {
-        id: schedule.route.id,
-        name: schedule.route.name,
-        origin: schedule.route.origin,
-        destination: schedule.route.destination,
-        duration: schedule.route.duration
-      },
-      upcomingDepartures: schedule.departures.map(departure => ({
-        id: departure.id,
-        date: departure.date,
-        capacity: departure.capacity,
-        bookedSeats: departure.bookedSeats,
-        availableSeats: departure.capacity - departure.bookedSeats,
-        status: departure.status
-      }))
-    }));
+    const schedulesWithStats = schedules
+      .filter(schedule => schedule.route) // Filter out schedules without routes
+      .map((schedule: any) => ({
+        id: schedule.id,
+        time: schedule.time,
+        dayOfWeek: schedule.dayOfWeek,
+        capacity: schedule.capacity || 20,
+        isActive: schedule.isActive,
+        route: {
+          id: schedule.route.id,
+          name: schedule.route.name,
+          origin: schedule.route.origin,
+          destination: schedule.route.destination,
+          duration: schedule.route.duration
+        },
+        upcomingDepartures: (schedule.departures || []).map((departure: any) => ({
+          id: departure.id,
+          date: departure.date,
+          capacity: departure.capacity,
+          bookedSeats: departure.bookedSeats || 0,
+          availableSeats: departure.capacity - (departure.bookedSeats || 0),
+          status: departure.status
+        }))
+      }));
 
     return NextResponse.json({ 
       schedules: schedulesWithStats,
