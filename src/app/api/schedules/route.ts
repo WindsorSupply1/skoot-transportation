@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
         id: schedule.id,
         time: schedule.time,
         dayOfWeek: schedule.dayOfWeek,
-        capacity: schedule.capacity || 20,
+        capacity: 20, // Default capacity since column doesn't exist yet
         isActive: schedule.isActive,
         route: {
           id: schedule.route.id,

@@ -121,7 +121,6 @@ export async function POST(request: NextRequest) {
               routeId: route1.id,
               dayOfWeek: day,
               time: time,
-              capacity: 20,
               isActive: true,
             }
           });
@@ -136,7 +135,6 @@ export async function POST(request: NextRequest) {
                 routeId: route2.id,
                 dayOfWeek: day,
                 time: offsetTime,
-                capacity: 20,
                 isActive: true,
               }
             });

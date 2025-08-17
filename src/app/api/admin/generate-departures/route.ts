@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
               data: {
                 scheduleId: schedule.id,
                 date: date,
-                capacity: schedule.capacity || 20,
+                capacity: 20, // Default capacity since column doesn't exist yet
                 bookedSeats: 0,
                 status: 'SCHEDULED',
               }
