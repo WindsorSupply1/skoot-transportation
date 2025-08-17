@@ -75,26 +75,28 @@ export default function BookingPage() {
 
       // Format the data according to the API schema
       const bookingData = {
-        departureId: tripDetails.departureId,
-        pickupLocationId: customerDetails.pickupLocationId,
-        passengerCount: tripDetails.passengers,
-        customerType: customerTypeMap[tripDetails.ticketType],
+        departureId: String(tripDetails.departureId),
+        pickupLocationId: String(customerDetails.pickupLocationId),
+        passengerCount: Number(tripDetails.passengers),
+        customerType: customerTypeMap[tripDetails.ticketType] as 'REGULAR' | 'STUDENT' | 'MILITARY' | 'LEGACY',
         guestInfo: {
-          firstName: customerDetails.firstName,
-          lastName: customerDetails.lastName,
-          email: customerDetails.email,
-          phone: customerDetails.phone,
+          firstName: String(customerDetails.firstName).trim(),
+          lastName: String(customerDetails.lastName).trim(),
+          email: String(customerDetails.email).toLowerCase().trim(),
+          phone: String(customerDetails.phone).replace(/\D/g, ''), // Remove non-digits
           createAccount: false,
         },
-        passengers: Array.from({ length: tripDetails.passengers }, (_, i) => ({
-          firstName: customerDetails.firstName,
-          lastName: customerDetails.lastName,
+        passengers: Array.from({ length: Number(tripDetails.passengers) }, (_, i) => ({
+          firstName: String(customerDetails.firstName).trim(),
+          lastName: String(customerDetails.lastName).trim(),
           age: tripDetails.ticketType === 'CHILD' ? 8 : tripDetails.ticketType === 'SENIOR' ? 70 : 30,
         })),
         extraLuggage: 0,
         pets: 0,
-        paymentMethodId: payment.stripePaymentMethodId,
+        paymentMethodId: String(payment.stripePaymentMethodId),
       };
+
+      console.log('Sending booking data:', JSON.stringify(bookingData, null, 2));
 
       const response = await fetch('/api/bookings', {
         method: 'POST',
@@ -114,7 +116,11 @@ export default function BookingPage() {
           setCurrentStep('confirmation');
         }, 500);
       } else {
-        throw new Error(result.error || 'Booking creation failed');
+        console.error('Booking API error:', result);
+        const errorMessage = result.details 
+          ? `Validation error: ${JSON.stringify(result.details)}`
+          : (result.error || 'Booking creation failed');
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Booking error:', error);
