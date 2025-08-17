@@ -210,7 +210,7 @@ function PaymentForm({
         setSuccess(true);
         onComplete({
           stripePaymentMethodId: paymentIntent.payment_method as string,
-          paymentIntentId: paymentIntent.id,
+          paymentIntentId: bookingData.id, // Use the actual booking ID
         });
       } else if (paymentIntent && paymentIntent.status === 'requires_action') {
         // 3D Secure authentication required - Stripe Elements will handle this automatically
@@ -420,15 +420,44 @@ export default function PaymentStep(props: PaymentStepProps) {
     try {
       setLoading(true);
       
+      // Map ticket types to customer types
+      const customerTypeMap = {
+        'ADULT': 'REGULAR',
+        'CHILD': 'REGULAR', 
+        'SENIOR': 'REGULAR'
+      };
+
+      // Ensure we have valid values
+      const passengerCount = Number(props.tripDetails?.passengers) || 1;
+      const departureId = String(props.tripDetails?.departureId || '');
+      const pickupLocationId = String(props.customerDetails?.pickupLocationId || '');
+      
+      // Format the data according to the API schema
+      const bookingData = {
+        departureId,
+        pickupLocationId,
+        passengerCount,
+        customerType: customerTypeMap[props.tripDetails.ticketType] as 'REGULAR' | 'STUDENT' | 'MILITARY' | 'LEGACY',
+        guestInfo: {
+          firstName: String(props.customerDetails.firstName || '').trim(),
+          lastName: String(props.customerDetails.lastName || '').trim(),
+          email: String(props.customerDetails.email || '').toLowerCase().trim(),
+          phone: String(props.customerDetails.phone || '').replace(/\D/g, ''), // Remove non-digits
+          createAccount: false,
+        },
+        passengers: Array.from({ length: passengerCount }, (_, i) => ({
+          firstName: String(props.customerDetails.firstName || '').trim(),
+          lastName: String(props.customerDetails.lastName || '').trim(),
+          age: props.tripDetails.ticketType === 'CHILD' ? 8 : props.tripDetails.ticketType === 'SENIOR' ? 70 : 30,
+        })),
+        extraLuggage: 0,
+        pets: 0,
+      };
+      
       const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...props.tripDetails,
-          ...props.customerDetails,
-          // Create as PENDING until payment completes
-          status: 'PENDING',
-        }),
+        body: JSON.stringify(bookingData),
       });
 
       const result = await response.json();
@@ -436,6 +465,7 @@ export default function PaymentStep(props: PaymentStepProps) {
       if (response.ok) {
         setBookingData(result.booking);
       } else {
+        console.error('Booking API error:', result);
         throw new Error(result.error || 'Failed to create booking');
       }
     } catch (error) {

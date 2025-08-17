@@ -62,71 +62,16 @@ export default function BookingPage() {
     }
     
     setIsLoading(true);
-    setLoadingStage('booking');
+    setLoadingStage('confirmation');
     setError(null);
     
     try {
-      // Map ticket types to customer types
-      const customerTypeMap = {
-        'ADULT': 'REGULAR',
-        'CHILD': 'REGULAR', 
-        'SENIOR': 'REGULAR'
-      };
-
-      // Ensure we have valid values
-      const passengerCount = Number(tripDetails?.passengers) || 1;
-      const departureId = String(tripDetails?.departureId || '');
-      const pickupLocationId = String(customerDetails?.pickupLocationId || '');
-      
-      // Format the data according to the API schema
-      const bookingData = {
-        departureId,
-        pickupLocationId,
-        passengerCount,
-        customerType: customerTypeMap[tripDetails.ticketType] as 'REGULAR' | 'STUDENT' | 'MILITARY' | 'LEGACY',
-        guestInfo: {
-          firstName: String(customerDetails.firstName || '').trim(),
-          lastName: String(customerDetails.lastName || '').trim(),
-          email: String(customerDetails.email || '').toLowerCase().trim(),
-          phone: String(customerDetails.phone || '').replace(/\D/g, ''), // Remove non-digits
-          createAccount: false,
-        },
-        passengers: Array.from({ length: passengerCount }, (_, i) => ({
-          firstName: String(customerDetails.firstName || '').trim(),
-          lastName: String(customerDetails.lastName || '').trim(),
-          age: tripDetails.ticketType === 'CHILD' ? 8 : tripDetails.ticketType === 'SENIOR' ? 70 : 30,
-        })),
-        extraLuggage: 0,
-        pets: 0,
-        paymentMethodId: String(payment.stripePaymentMethodId || ''),
-      };
-
-      console.log('Sending booking data:', JSON.stringify(bookingData, null, 2));
-
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(bookingData),
-      });
-
-      const result = await response.json();
-      
-      if (response.ok) {
-        setLoadingStage('confirmation');
-        // Small delay to show confirmation stage
-        setTimeout(() => {
-          setBookingId(result.booking.id);
-          setCurrentStep('confirmation');
-        }, 500);
-      } else {
-        console.error('Booking API error:', result);
-        const errorMessage = result.details 
-          ? `Validation error: ${JSON.stringify(result.details)}`
-          : (result.error || 'Booking creation failed');
-        throw new Error(errorMessage);
-      }
+      // Payment was successful and booking was already created in PaymentStep
+      // Just transition to confirmation with a delay
+      setTimeout(() => {
+        setBookingId(payment.paymentIntentId); // Use payment intent ID as booking reference
+        setCurrentStep('confirmation');
+      }, 500);
     } catch (error) {
       console.error('Booking error:', error);
       setError(
@@ -134,11 +79,6 @@ export default function BookingPage() {
           ? error.message 
           : 'An unexpected error occurred. Please try again.'
       );
-      
-      // If payment was successful but booking failed, we need to handle this carefully
-      if (error instanceof Error && error.message.includes('payment')) {
-        setError('Payment was processed but booking creation failed. Please contact support immediately.');
-      }
     } finally {
       setIsLoading(false);
     }
