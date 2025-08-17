@@ -18,13 +18,14 @@ export async function GET(request: NextRequest) {
     }
 
     const schedules = await prisma.schedule.findMany({
-      where,
-      include: {
+      where: {
+        ...where,
         route: {
-          where: {
-            isActive: true
-          }
-        },
+          isActive: true
+        }
+      },
+      include: {
+        route: true,
         departures: {
           where: {
             date: {
