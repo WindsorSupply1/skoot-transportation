@@ -73,27 +73,32 @@ export default function BookingPage() {
         'SENIOR': 'REGULAR'
       };
 
+      // Ensure we have valid values
+      const passengerCount = Number(tripDetails?.passengers) || 1;
+      const departureId = String(tripDetails?.departureId || '');
+      const pickupLocationId = String(customerDetails?.pickupLocationId || '');
+      
       // Format the data according to the API schema
       const bookingData = {
-        departureId: String(tripDetails.departureId),
-        pickupLocationId: String(customerDetails.pickupLocationId),
-        passengerCount: Number(tripDetails.passengers),
+        departureId,
+        pickupLocationId,
+        passengerCount,
         customerType: customerTypeMap[tripDetails.ticketType] as 'REGULAR' | 'STUDENT' | 'MILITARY' | 'LEGACY',
         guestInfo: {
-          firstName: String(customerDetails.firstName).trim(),
-          lastName: String(customerDetails.lastName).trim(),
-          email: String(customerDetails.email).toLowerCase().trim(),
-          phone: String(customerDetails.phone).replace(/\D/g, ''), // Remove non-digits
+          firstName: String(customerDetails.firstName || '').trim(),
+          lastName: String(customerDetails.lastName || '').trim(),
+          email: String(customerDetails.email || '').toLowerCase().trim(),
+          phone: String(customerDetails.phone || '').replace(/\D/g, ''), // Remove non-digits
           createAccount: false,
         },
-        passengers: Array.from({ length: Number(tripDetails.passengers) }, (_, i) => ({
-          firstName: String(customerDetails.firstName).trim(),
-          lastName: String(customerDetails.lastName).trim(),
+        passengers: Array.from({ length: passengerCount }, (_, i) => ({
+          firstName: String(customerDetails.firstName || '').trim(),
+          lastName: String(customerDetails.lastName || '').trim(),
           age: tripDetails.ticketType === 'CHILD' ? 8 : tripDetails.ticketType === 'SENIOR' ? 70 : 30,
         })),
         extraLuggage: 0,
         pets: 0,
-        paymentMethodId: String(payment.stripePaymentMethodId),
+        paymentMethodId: String(payment.stripePaymentMethodId || ''),
       };
 
       console.log('Sending booking data:', JSON.stringify(bookingData, null, 2));
