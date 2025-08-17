@@ -442,7 +442,10 @@ export default function PaymentStep(props: PaymentStepProps) {
           firstName: String(props.customerDetails.firstName || '').trim(),
           lastName: String(props.customerDetails.lastName || '').trim(),
           email: String(props.customerDetails.email || '').toLowerCase().trim(),
-          phone: String(props.customerDetails.phone || '').replace(/\D/g, ''), // Remove non-digits
+          phone: (() => {
+            const cleanPhone = String(props.customerDetails.phone || '').replace(/\D/g, '');
+            return cleanPhone.length >= 10 ? cleanPhone : '0000000000';
+          })(), // Remove non-digits, ensure 10+ chars
           createAccount: false,
         },
         passengers: Array.from({ length: passengerCount }, (_, i) => ({
