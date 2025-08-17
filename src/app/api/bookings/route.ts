@@ -39,11 +39,17 @@ const BookingSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Booking API: Starting request processing');
     const body = await request.json();
+    console.log('Booking API: Request body:', JSON.stringify(body, null, 2));
+    
     const validatedData = BookingSchema.parse(body);
+    console.log('Booking API: Validation successful');
 
     // Get current user (if authenticated)
+    console.log('Booking API: Getting current user');
     const currentUser = await getCurrentUser();
+    console.log('Booking API: Current user:', currentUser ? 'authenticated' : 'guest');
     
     // Validate guest info if not authenticated
     if (!currentUser && !validatedData.guestInfo) {
@@ -53,6 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check departure availability
+    console.log('Booking API: Checking departure availability for ID:', validatedData.departureId);
     const departure = await prisma.departure.findUnique({
       where: { id: validatedData.departureId },
       include: {
@@ -221,6 +228,11 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Booking creation error:', error);
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      cause: error instanceof Error ? error.cause : undefined
+    });
     
     if (error instanceof z.ZodError) {
       return NextResponse.json({ 
@@ -230,7 +242,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ 
-      error: 'Internal server error' 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }
