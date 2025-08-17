@@ -29,6 +29,7 @@ interface CustomerDetails {
 
 interface PaymentDetails {
   stripePaymentMethodId: string;
+  paymentIntentId: string;
 }
 
 type BookingStep = 'trip' | 'customer' | 'payment' | 'confirmation';
