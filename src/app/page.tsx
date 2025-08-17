@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
 import { Phone, Mail } from 'lucide-react';
-import NavigationHeader from '../../components/layout/NavigationHeader';
+// import NavigationHeader from '../../components/layout/NavigationHeader';
 import Link from 'next/link';
 
 export default function HomePage() {
@@ -409,8 +409,8 @@ export default function HomePage() {
         Book Now - Starting $31
       </Link>
 
-      {/* Navigation */}
-      <NavigationHeader transparent={!showHeaderBooking} />
+      {/* Navigation - removed to fix SSR issues */}
+      {/* <NavigationHeader transparent={!showHeaderBooking} /> */}
 
       {/* Promo Banner */}
       <div className="promo-banner">
