@@ -231,7 +231,7 @@ export async function POST(request: NextRequest) {
     console.error('Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
-      cause: error instanceof Error ? error.cause : undefined
+      name: error instanceof Error ? error.name : undefined
     });
     
     if (error instanceof z.ZodError) {
