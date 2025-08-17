@@ -453,6 +453,8 @@ export default function PaymentStep(props: PaymentStepProps) {
         extraLuggage: 0,
         pets: 0,
       };
+
+      console.log('PaymentStep - Sending booking data:', JSON.stringify(bookingData, null, 2));
       
       const response = await fetch('/api/bookings', {
         method: 'POST',
@@ -466,6 +468,20 @@ export default function PaymentStep(props: PaymentStepProps) {
         setBookingData(result.booking);
       } else {
         console.error('Booking API error:', result);
+        console.error('Full API response:', {
+          status: response.status,
+          statusText: response.statusText,
+          result
+        });
+        
+        // Show detailed validation errors
+        if (result.details && Array.isArray(result.details)) {
+          const validationErrors = result.details.map((err: any) => 
+            `${err.path?.join('.')}: ${err.message}`
+          ).join(', ');
+          throw new Error(`Validation errors: ${validationErrors}`);
+        }
+        
         throw new Error(result.error || 'Failed to create booking');
       }
     } catch (error) {
