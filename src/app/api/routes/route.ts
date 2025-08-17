@@ -42,36 +42,46 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform data to include computed fields
-    const routesWithSchedules = routes.map(route => ({
-      id: route.id,
-      name: route.name,
-      origin: route.origin,
-      destination: route.destination,
-      duration: route.duration,
-      isActive: route.isActive,
-      schedules: includeSchedules ? route.schedules?.map(schedule => ({
-        id: schedule.id,
-        time: schedule.time,
-        dayOfWeek: schedule.dayOfWeek,
-        capacity: schedule.capacity,
-        isActive: schedule.isActive,
-        route: {
-          id: route.id,
-          name: route.name,
-          origin: route.origin,
-          destination: route.destination,
-          duration: route.duration
-        },
-        upcomingDepartures: schedule.departures.map(departure => ({
-          id: departure.id,
-          date: departure.date,
-          capacity: departure.capacity,
-          bookedSeats: departure.bookedSeats,
-          availableSeats: departure.capacity - departure.bookedSeats,
-          status: departure.status
-        }))
-      })) : undefined
-    }));
+    const routesWithSchedules = routes.map(route => {
+      const baseRoute = {
+        id: route.id,
+        name: route.name,
+        origin: route.origin,
+        destination: route.destination,
+        duration: route.duration,
+        isActive: route.isActive,
+      };
+
+      if (includeSchedules && 'schedules' in route && route.schedules) {
+        return {
+          ...baseRoute,
+          schedules: route.schedules.map(schedule => ({
+            id: schedule.id,
+            time: schedule.time,
+            dayOfWeek: schedule.dayOfWeek,
+            capacity: schedule.capacity,
+            isActive: schedule.isActive,
+            route: {
+              id: route.id,
+              name: route.name,
+              origin: route.origin,
+              destination: route.destination,
+              duration: route.duration
+            },
+            upcomingDepartures: schedule.departures.map(departure => ({
+              id: departure.id,
+              date: departure.date,
+              capacity: departure.capacity,
+              bookedSeats: departure.bookedSeats,
+              availableSeats: departure.capacity - departure.bookedSeats,
+              status: departure.status
+            }))
+          }))
+        };
+      }
+
+      return baseRoute;
+    });
 
     return NextResponse.json({ 
       routes: routesWithSchedules,
