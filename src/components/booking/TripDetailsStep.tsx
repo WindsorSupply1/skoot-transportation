@@ -83,9 +83,9 @@ export default function TripDetailsStep({ onComplete }: TripDetailsStepProps) {
     
     const dayOfWeek = getDayOfWeek(selectedDate);
     return schedules.filter(schedule => {
-      // Convert our dayOfWeek (0-6, Sunday=0) to database format (1-7, Monday=1)
-      const dbDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // Sunday becomes 7
-      return schedule.dayOfWeek === dbDayOfWeek;
+      // Check if schedule matches the selected day
+      // Database has Sunday as 0, Monday as 1, etc.
+      return schedule.dayOfWeek === dayOfWeek;
     });
   };
 
