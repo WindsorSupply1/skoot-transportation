@@ -66,16 +66,42 @@ export default function BookingPage() {
     setError(null);
     
     try {
+      // Map ticket types to customer types
+      const customerTypeMap = {
+        'ADULT': 'REGULAR',
+        'CHILD': 'REGULAR', 
+        'SENIOR': 'REGULAR'
+      };
+
+      // Format the data according to the API schema
+      const bookingData = {
+        departureId: tripDetails.departureId,
+        pickupLocationId: customerDetails.pickupLocationId,
+        passengerCount: tripDetails.passengers,
+        customerType: customerTypeMap[tripDetails.ticketType],
+        guestInfo: {
+          firstName: customerDetails.firstName,
+          lastName: customerDetails.lastName,
+          email: customerDetails.email,
+          phone: customerDetails.phone,
+          createAccount: false,
+        },
+        passengers: Array.from({ length: tripDetails.passengers }, (_, i) => ({
+          firstName: customerDetails.firstName,
+          lastName: customerDetails.lastName,
+          age: tripDetails.ticketType === 'CHILD' ? 8 : tripDetails.ticketType === 'SENIOR' ? 70 : 30,
+        })),
+        extraLuggage: 0,
+        pets: 0,
+        paymentMethodId: payment.stripePaymentMethodId,
+      };
+
       const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...tripDetails,
-          ...customerDetails,
-          ...payment,
-        }),
+        body: JSON.stringify(bookingData),
       });
 
       const result = await response.json();
