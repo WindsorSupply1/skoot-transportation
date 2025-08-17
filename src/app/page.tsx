@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { Phone, Mail } from 'lucide-react';
 import NavigationHeader from '../../components/layout/NavigationHeader';
 import { useAuth } from '../../components/auth/AuthProvider';
-import ClientOnly from '../../components/ClientOnly';
+import ClientOnly from '@/components/ClientOnly';
 import Link from 'next/link';
 
 function StickyBookButton() {
