@@ -23,15 +23,18 @@ export async function GET(request: NextRequest) {
       prisma.booking.count()
     ]);
 
-    // Get sample data from each table
+    // Get sample data from each table (basic queries to avoid schema issues)
     const sampleRoutes = await prisma.route.findMany({ take: 3 });
-    const sampleSchedules = await prisma.schedule.findMany({ 
-      take: 3,
-      include: { route: true }
-    });
+    const sampleSchedules = await prisma.$queryRaw`SELECT id, "routeId", "dayOfWeek", time, "isActive" FROM schedules LIMIT 3`;
     const sampleDepartures = await prisma.departure.findMany({ 
       take: 3,
-      include: { schedule: { include: { route: true } } }
+      select: {
+        id: true,
+        date: true,
+        capacity: true,
+        bookedSeats: true,
+        status: true
+      }
     });
 
     return NextResponse.json({
