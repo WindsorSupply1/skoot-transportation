@@ -108,49 +108,42 @@ export async function POST(request: NextRequest) {
         }),
       ]);
 
-      // Create schedules for routes
-      const schedules = await Promise.all([
-        prisma.schedule.create({
-          data: {
-            routeId: route1.id,
-            dayOfWeek: 1, // Monday
-            time: '09:00',
-            isActive: true,
+      // Create schedules for all days of the week
+      const schedules = [];
+      const times = ['06:00', '09:00', '12:00', '15:00', '18:00', '21:00'];
+      
+      // Create schedules for each day of the week (1=Monday to 7=Sunday)
+      for (let day = 1; day <= 7; day++) {
+        for (const time of times) {
+          // Columbia to Charleston
+          const schedule1 = await prisma.schedule.create({
+            data: {
+              routeId: route1.id,
+              dayOfWeek: day,
+              time: time,
+              capacity: 20,
+              isActive: true,
+            }
+          });
+          schedules.push(schedule1);
+          
+          // Charleston to Columbia (offset by 30 minutes)
+          const [hours, minutes] = time.split(':').map(Number);
+          const offsetTime = `${hours.toString().padStart(2, '0')}:30`;
+          if (hours < 23) { // Don't create if it would be past midnight
+            const schedule2 = await prisma.schedule.create({
+              data: {
+                routeId: route2.id,
+                dayOfWeek: day,
+                time: offsetTime,
+                capacity: 20,
+                isActive: true,
+              }
+            });
+            schedules.push(schedule2);
           }
-        }),
-        prisma.schedule.create({
-          data: {
-            routeId: route1.id,
-            dayOfWeek: 1,
-            time: '15:00',
-            isActive: true,
-          }
-        }),
-        prisma.schedule.create({
-          data: {
-            routeId: route2.id,
-            dayOfWeek: 1,
-            time: '12:00',
-            isActive: true,
-          }
-        }),
-        prisma.schedule.create({
-          data: {
-            routeId: route1.id,
-            dayOfWeek: 2, // Tuesday
-            time: '09:00',
-            isActive: true,
-          }
-        }),
-        prisma.schedule.create({
-          data: {
-            routeId: route2.id,
-            dayOfWeek: 2,
-            time: '15:00',
-            isActive: true,
-          }
-        }),
-      ]);
+        }
+      }
 
       // Create some departures for the next few days
       const today = new Date();
