@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform data to include computed fields
-    const routesWithSchedules = routes.map(route => {
+    const routesWithSchedules = routes.map((route: any) => {
       const baseRoute = {
         id: route.id,
         name: route.name,
@@ -52,10 +52,10 @@ export async function GET(request: NextRequest) {
         isActive: route.isActive,
       };
 
-      if (includeSchedules && 'schedules' in route && route.schedules) {
+      if (includeSchedules && route.schedules) {
         return {
           ...baseRoute,
-          schedules: route.schedules.map(schedule => ({
+          schedules: route.schedules.map((schedule: any) => ({
             id: schedule.id,
             time: schedule.time,
             dayOfWeek: schedule.dayOfWeek,
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
               destination: route.destination,
               duration: route.duration
             },
-            upcomingDepartures: schedule.departures.map(departure => ({
+            upcomingDepartures: schedule.departures.map((departure: any) => ({
               id: departure.id,
               date: departure.date,
               capacity: departure.capacity,
