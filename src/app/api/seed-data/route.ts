@@ -159,14 +159,6 @@ export async function POST(request: NextRequest) {
       }),
       prisma.pricingTier.create({
         data: {
-          name: 'Senior',
-          customerType: 'SENIOR',
-          basePrice: 32,
-          isActive: true,
-        }
-      }),
-      prisma.pricingTier.create({
-        data: {
           name: 'Military',
           customerType: 'MILITARY',
           basePrice: 32,
