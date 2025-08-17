@@ -13,7 +13,6 @@ export async function POST(request: NextRequest) {
         origin: 'Columbia, SC',
         destination: 'Charleston, SC',
         duration: 120,
-        price: 35,
         isActive: true,
       }
     });
