@@ -58,13 +58,13 @@ export default function TripDetailsStep({ onComplete }: TripDetailsStepProps) {
     try {
       setLoading(true);
       
-      // Fetch routes first
-      const routesResponse = await fetch('/api/admin/routes');
+      // Fetch routes first (using public endpoint)
+      const routesResponse = await fetch('/api/routes');
       const routesData = await routesResponse.json();
       setRoutes(routesData.routes || []);
 
-      // Fetch schedules with upcoming departures
-      const schedulesResponse = await fetch('/api/admin/schedules');
+      // Fetch schedules with upcoming departures (using public endpoint)
+      const schedulesResponse = await fetch('/api/schedules');
       const schedulesData = await schedulesResponse.json();
       setSchedules(schedulesData.schedules || []);
     } catch (error) {
