@@ -9,67 +9,89 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const routeId = searchParams.get('routeId');
     
-    const where: any = {
-      isActive: true
-    };
+    // Use raw query to avoid schema issues
+    let schedulesQuery = `
+      SELECT 
+        s.id,
+        s."routeId",
+        s."dayOfWeek",
+        s.time,
+        s."isActive",
+        r.id as route_id,
+        r.name as route_name,
+        r.origin as route_origin,
+        r.destination as route_destination,
+        r.duration as route_duration
+      FROM schedules s
+      INNER JOIN routes r ON s."routeId" = r.id
+      WHERE s."isActive" = true AND r."isActive" = true
+    `;
     
     if (routeId) {
-      where.routeId = routeId;
+      schedulesQuery += ` AND s."routeId" = '${routeId}'`;
     }
+    
+    schedulesQuery += ` ORDER BY r.name, s.time`;
+    
+    const schedules = await prisma.$queryRawUnsafe(schedulesQuery) as any[];
 
-    const schedules = await prisma.schedule.findMany({
+    // Get departures for all schedules
+    const today = new Date();
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 30);
+    
+    const departures = await prisma.departure.findMany({
       where: {
-        ...where,
-        route: {
-          isActive: true
-        }
-      },
-      include: {
-        route: true,
-        departures: {
-          where: {
-            date: {
-              gte: new Date() // Only future departures
-            },
-            status: {
-              in: ['SCHEDULED', 'BOARDING']
-            }
-          },
-          orderBy: { date: 'asc' },
-          take: 30 // Limit to next 30 departures per schedule
-        }
-      },
-      orderBy: [
-        { route: { name: 'asc' } },
-        { time: 'asc' }
-      ]
-    });
-
-    // Transform data to include computed fields
-    const schedulesWithStats = schedules
-      .filter(schedule => schedule.route) // Filter out schedules without routes
-      .map((schedule: any) => ({
-        id: schedule.id,
-        time: schedule.time,
-        dayOfWeek: schedule.dayOfWeek,
-        capacity: 20, // Default capacity since column doesn't exist yet
-        isActive: schedule.isActive,
-        route: {
-          id: schedule.route.id,
-          name: schedule.route.name,
-          origin: schedule.route.origin,
-          destination: schedule.route.destination,
-          duration: schedule.route.duration
+        date: {
+          gte: today,
+          lte: futureDate
         },
-        upcomingDepartures: (schedule.departures || []).map((departure: any) => ({
-          id: departure.id,
-          date: departure.date,
-          capacity: departure.capacity,
-          bookedSeats: departure.bookedSeats || 0,
-          availableSeats: departure.capacity - (departure.bookedSeats || 0),
-          status: departure.status
-        }))
-      }));
+        status: {
+          in: ['SCHEDULED', 'BOARDING']
+        }
+      },
+      select: {
+        id: true,
+        scheduleId: true,
+        date: true,
+        capacity: true,
+        bookedSeats: true,
+        status: true
+      }
+    });
+    
+    // Group departures by schedule
+    const departuresBySchedule: { [key: string]: any[] } = {};
+    departures.forEach(dep => {
+      if (!departuresBySchedule[dep.scheduleId]) {
+        departuresBySchedule[dep.scheduleId] = [];
+      }
+      departuresBySchedule[dep.scheduleId].push({
+        id: dep.id,
+        date: dep.date,
+        capacity: dep.capacity,
+        bookedSeats: dep.bookedSeats,
+        availableSeats: dep.capacity - dep.bookedSeats,
+        status: dep.status
+      });
+    });
+    
+    // Transform data to match expected format
+    const schedulesWithStats = schedules.map((schedule: any) => ({
+      id: schedule.id,
+      time: schedule.time,
+      dayOfWeek: schedule.dayOfWeek,
+      capacity: 20, // Default capacity
+      isActive: schedule.isActive,
+      route: {
+        id: schedule.route_id,
+        name: schedule.route_name,
+        origin: schedule.route_origin,
+        destination: schedule.route_destination,
+        duration: schedule.route_duration
+      },
+      upcomingDepartures: departuresBySchedule[schedule.id] || []
+    }));
 
     return NextResponse.json({ 
       schedules: schedulesWithStats,
