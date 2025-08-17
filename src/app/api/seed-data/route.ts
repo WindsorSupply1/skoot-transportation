@@ -130,7 +130,6 @@ export async function POST(request: NextRequest) {
             date: date,
             capacity: schedule.capacity,
             bookedSeats: 0,
-            availableSeats: schedule.capacity,
             status: 'SCHEDULED',
           }
         });
