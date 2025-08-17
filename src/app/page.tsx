@@ -5,107 +5,7 @@ export const dynamic = 'force-dynamic';
 import React, { useState, useEffect } from 'react';
 import { Phone, Mail } from 'lucide-react';
 import NavigationHeader from '../../components/layout/NavigationHeader';
-import { useAuth } from '../../components/auth/AuthProvider';
-import ClientOnly from '@/components/ClientOnly';
 import Link from 'next/link';
-
-function StickyBookButton() {
-  const { isAuthenticated } = useAuth();
-  return (
-    <Link href="/booking" className="sticky-book-btn">
-      {isAuthenticated ? 'Book Another Trip' : 'Book Now - Starting $31'}
-    </Link>
-  );
-}
-
-function BookingWidget() {
-  const { isAuthenticated, user } = useAuth();
-  
-  return (
-    <div className="booking-widget" id="book">
-      <h3 style={{ color: '#FF6600', marginBottom: '25px', fontSize: '1.5em', textAlign: 'center' }}>Ready to Book Your Trip?</h3>
-      <p style={{ textAlign: 'center', color: '#666', marginBottom: '30px', fontSize: '1.1em' }}>
-        Secure booking with real-time availability, pickup location selection, and instant confirmation.
-      </p>
-      {isAuthenticated ? (
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <p style={{ color: '#666', marginBottom: '15px', fontSize: '1em' }}>
-            Welcome back, {user?.name?.split(' ')[0]}! 
-          </p>
-          <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link 
-              href="/booking"
-              style={{ 
-                background: 'linear-gradient(135deg, #FF6600 0%, #E55A00 100%)', 
-                color: 'white', 
-                padding: '15px 30px', 
-                border: 'none', 
-                borderRadius: '12px', 
-                fontSize: '1.1em', 
-                fontWeight: 'bold', 
-                textDecoration: 'none',
-                display: 'inline-block',
-                transition: 'all 0.3s ease',
-                boxShadow: '0 4px 15px rgba(255, 102, 0, 0.3)'
-              }}
-            >
-              Book New Trip
-            </Link>
-            <Link 
-              href="/bookings"
-              style={{ 
-                background: 'white', 
-                color: '#FF6600', 
-                padding: '15px 30px', 
-                border: '2px solid #FF6600', 
-                borderRadius: '12px', 
-                fontSize: '1.1em', 
-                fontWeight: 'bold', 
-                textDecoration: 'none',
-                display: 'inline-block',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              My Bookings
-            </Link>
-          </div>
-        </div>
-      ) : (
-        <Link 
-          href="/booking" 
-          style={{ 
-            background: 'linear-gradient(135deg, #FF6600 0%, #E55A00 100%)', 
-            color: 'white', 
-            padding: '20px 40px', 
-            border: 'none', 
-            borderRadius: '12px', 
-            fontSize: '1.3em', 
-            fontWeight: 'bold', 
-            textDecoration: 'none',
-            display: 'block',
-            textAlign: 'center',
-            transition: 'all 0.3s ease',
-            boxShadow: '0 4px 15px rgba(255, 102, 0, 0.3)'
-          }}
-        >
-          Book Your Seat - Starting $31
-        </Link>
-      )}
-      <p style={{ textAlign: 'center', color: '#888', marginTop: '15px', fontSize: '0.9em' }}>
-        ✓ Secure Payment ✓ Instant Confirmation ✓ Choose Pickup Location
-      </p>
-    </div>
-  );
-}
-
-function CTAButton() {
-  const { isAuthenticated } = useAuth();
-  return (
-    <Link href="/booking" style={{ background: 'white', color: '#FF6600', padding: '18px 40px', border: 'none', borderRadius: '30px', fontSize: '1.2em', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'none', display: 'inline-block', transition: 'all 0.3s ease' }}>
-      {isAuthenticated ? 'Book Your Next Trip' : 'Secure Your Spot'}
-    </Link>
-  );
-}
 
 export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -505,13 +405,9 @@ export default function HomePage() {
       </div>
 
       {/* Sticky Book Now Button */}
-      <ClientOnly fallback={
-        <Link href="/booking" className="sticky-book-btn">
-          Book Now - Starting $31
-        </Link>
-      }>
-        <StickyBookButton />
-      </ClientOnly>
+      <Link href="/booking" className="sticky-book-btn">
+        Book Now - Starting $31
+      </Link>
 
       {/* Navigation */}
       <NavigationHeader transparent={!showHeaderBooking} />
@@ -548,38 +444,34 @@ export default function HomePage() {
             </div>
           </div>
           
-          <ClientOnly fallback={
-            <div className="booking-widget" id="book">
-              <h3 style={{ color: '#FF6600', marginBottom: '25px', fontSize: '1.5em', textAlign: 'center' }}>Ready to Book Your Trip?</h3>
-              <p style={{ textAlign: 'center', color: '#666', marginBottom: '30px', fontSize: '1.1em' }}>
-                Secure booking with real-time availability, pickup location selection, and instant confirmation.
-              </p>
-              <Link 
-                href="/booking" 
-                style={{ 
-                  background: 'linear-gradient(135deg, #FF6600 0%, #E55A00 100%)', 
-                  color: 'white', 
-                  padding: '20px 40px', 
-                  border: 'none', 
-                  borderRadius: '12px', 
-                  fontSize: '1.3em', 
-                  fontWeight: 'bold', 
-                  textDecoration: 'none',
-                  display: 'block',
-                  textAlign: 'center',
-                  transition: 'all 0.3s ease',
-                  boxShadow: '0 4px 15px rgba(255, 102, 0, 0.3)'
-                }}
-              >
-                Book Your Seat - Starting $31
-              </Link>
-              <p style={{ textAlign: 'center', color: '#888', marginTop: '15px', fontSize: '0.9em' }}>
-                ✓ Secure Payment ✓ Instant Confirmation ✓ Choose Pickup Location
-              </p>
-            </div>
-          }>
-            <BookingWidget />
-          </ClientOnly>
+          <div className="booking-widget" id="book">
+            <h3 style={{ color: '#FF6600', marginBottom: '25px', fontSize: '1.5em', textAlign: 'center' }}>Ready to Book Your Trip?</h3>
+            <p style={{ textAlign: 'center', color: '#666', marginBottom: '30px', fontSize: '1.1em' }}>
+              Secure booking with real-time availability, pickup location selection, and instant confirmation.
+            </p>
+            <Link 
+              href="/booking" 
+              style={{ 
+                background: 'linear-gradient(135deg, #FF6600 0%, #E55A00 100%)', 
+                color: 'white', 
+                padding: '20px 40px', 
+                border: 'none', 
+                borderRadius: '12px', 
+                fontSize: '1.3em', 
+                fontWeight: 'bold', 
+                textDecoration: 'none',
+                display: 'block',
+                textAlign: 'center',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 15px rgba(255, 102, 0, 0.3)'
+              }}
+            >
+              Book Your Seat - Starting $31
+            </Link>
+            <p style={{ textAlign: 'center', color: '#888', marginTop: '15px', fontSize: '0.9em' }}>
+              ✓ Secure Payment ✓ Instant Confirmation ✓ Choose Pickup Location
+            </p>
+          </div>
         </div>
       </section>
 
@@ -766,13 +658,9 @@ export default function HomePage() {
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
           <h2 style={{ fontSize: '2.5em', marginBottom: '20px' }}>First 100 Customers Special</h2>
           <p style={{ fontSize: '1.2em', marginBottom: '30px', opacity: 0.9 }}>Lock in the $31 rate forever! Join our founding members and never pay more.</p>
-          <ClientOnly fallback={
-            <Link href="/booking" style={{ background: 'white', color: '#FF6600', padding: '18px 40px', border: 'none', borderRadius: '30px', fontSize: '1.2em', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'none', display: 'inline-block', transition: 'all 0.3s ease' }}>
-              Secure Your Spot
-            </Link>
-          }>
-            <CTAButton />
-          </ClientOnly>
+          <Link href="/booking" style={{ background: 'white', color: '#FF6600', padding: '18px 40px', border: 'none', borderRadius: '30px', fontSize: '1.2em', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'none', display: 'inline-block', transition: 'all 0.3s ease' }}>
+            Secure Your Spot
+          </Link>
         </div>
       </section>
 
