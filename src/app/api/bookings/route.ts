@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
         id: validatedData.departureId,
         capacity: 15,
         schedule: {
+          routeId: 'mock_route_id',
           route: {
             name: 'Columbia to Charlotte Airport'
           }
@@ -99,6 +100,7 @@ export async function POST(request: NextRequest) {
           id: validatedData.departureId,
           capacity: 15,
           schedule: {
+            routeId: 'mock_route_id',
             route: {
               name: 'Columbia to Charlotte Airport'
             }
@@ -212,7 +214,7 @@ export async function POST(request: NextRequest) {
         booking = await prisma.booking.create({
       data: {
         userId: bookingUserId,
-        routeId: departure.schedule.routeId,
+        routeId: departure.schedule.routeId || 'default_route_id',
         departureId: validatedData.departureId,
         returnDepartureId: validatedData.returnDepartureId,
         pickupLocationId: validatedData.pickupLocationId,
