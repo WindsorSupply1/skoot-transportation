@@ -1,0 +1,12 @@
+User-Agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /static/
+
+User-Agent: Googlebot
+Allow: /
+
+Host: https://skoot.bike
+Sitemap: https://skoot.bike/sitemap.xml

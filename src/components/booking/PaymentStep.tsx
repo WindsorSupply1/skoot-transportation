@@ -410,6 +410,7 @@ export default function PaymentStep(props: PaymentStepProps) {
   const [stripePromise] = useState(() => getStripe());
   const [bookingData, setBookingData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [bookingError, setBookingError] = useState<string | null>(null);
 
   // Create booking first, then show payment form
   useEffect(() => {
@@ -467,7 +468,8 @@ export default function PaymentStep(props: PaymentStepProps) {
 
       const result = await response.json();
       
-      if (response.ok) {
+      if (response.ok && result.booking) {
+        console.log('PaymentStep - Booking created successfully:', result.booking.id);
         setBookingData(result.booking);
       } else {
         console.error('Booking API error:', result);
@@ -478,18 +480,23 @@ export default function PaymentStep(props: PaymentStepProps) {
         });
         
         // Show detailed validation errors
+        let errorMessage = 'Failed to create booking';
         if (result.details && Array.isArray(result.details)) {
           const validationErrors = result.details.map((err: any) => 
             `${err.path?.join('.')}: ${err.message}`
           ).join(', ');
-          throw new Error(`Validation errors: ${validationErrors}`);
+          errorMessage = `Validation errors: ${validationErrors}`;
+        } else if (result.error) {
+          errorMessage = result.error;
         }
         
-        throw new Error(result.error || 'Failed to create booking');
+        setBookingData(null);
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Booking creation error:', error);
-      // Handle booking creation error
+      setBookingData(null);
+      setBookingError(error instanceof Error ? error.message : 'Failed to create booking');
     } finally {
       setLoading(false);
     }
@@ -504,16 +511,27 @@ export default function PaymentStep(props: PaymentStepProps) {
     );
   }
 
-  if (!bookingData) {
+  if (bookingError || !bookingData) {
     return (
       <div className="text-center py-12">
         <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-red-800 mb-2">
           Booking Creation Failed
         </h3>
-        <p className="text-gray-600">
-          There was an error creating your booking. Please try again.
+        <p className="text-gray-600 mb-4">
+          {bookingError || 'There was an error creating your booking. Please try again.'}
         </p>
+        <div className="space-y-2">
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-orange-600 text-white px-6 py-2 rounded hover:bg-orange-700 transition-colors"
+          >
+            Try Again
+          </button>
+          <p className="text-sm text-gray-500">
+            If the problem persists, please contact support at hello@skoot.bike
+          </p>
+        </div>
       </div>
     );
   }
