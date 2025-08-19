@@ -88,9 +88,9 @@ export default function AdminDashboard() {
     setError(null);
     try {
       const [statsRes, bookingsRes, departuresRes] = await Promise.all([
-        fetch('/api/admin/dashboard/stats'),
-        fetch('/api/admin/bookings?limit=10'),
-        fetch('/api/admin/departures/today')
+        fetch('/api/admin/dashboard/stats', { credentials: 'include' }),
+        fetch('/api/admin/bookings?limit=10', { credentials: 'include' }),
+        fetch('/api/admin/departures/today', { credentials: 'include' })
       ]);
 
       if (!statsRes.ok) {
