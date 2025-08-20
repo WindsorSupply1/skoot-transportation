@@ -159,7 +159,7 @@ export default function TripDetailsStep({ onComplete }: TripDetailsStepProps) {
       {/* Date Selection */}
       <div className="space-y-4">
         <div className="flex items-center space-x-3">
-          <Calendar className="w-5 h-5 text-blue-500" />
+          <Calendar className="w-5 h-5 text-orange-500" />
           <label className="text-lg font-medium text-gray-700">Travel Date</label>
         </div>
         <input
@@ -171,7 +171,7 @@ export default function TripDetailsStep({ onComplete }: TripDetailsStepProps) {
             setSelectedDeparture(null);
           }}
           min={new Date().toISOString().split('T')[0]}
-          className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+          className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors"
         />
       </div>
 
@@ -179,7 +179,7 @@ export default function TripDetailsStep({ onComplete }: TripDetailsStepProps) {
       {selectedDate && (
         <div className="space-y-4">
           <div className="flex items-center space-x-3">
-            <Clock className="w-5 h-5 text-blue-500" />
+            <Clock className="w-5 h-5 text-orange-500" />
             <label className="text-lg font-medium text-gray-700">Available Departures</label>
           </div>
           
@@ -192,60 +192,105 @@ export default function TripDetailsStep({ onComplete }: TripDetailsStepProps) {
               <p className="text-yellow-700 text-sm mt-1">Please try a different date or check our schedule.</p>
             </div>
           ) : (
-            <div className="grid gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {availableSchedules.map((schedule) => {
                 const departures = getAvailableDepartures(schedule);
                 
                 return (
-                  <div key={schedule.id} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{schedule.route.name}</h3>
-                        <p className="text-sm text-gray-600">
-                          {schedule.route.origin} → {schedule.route.destination}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium">{formatTime(schedule.time)}</p>
-                        <p className="text-sm text-gray-500">{schedule.route.duration} min trip</p>
+                  <div key={schedule.id} className="bg-white border-2 border-gray-200 rounded-xl shadow-sm hover:shadow-md hover:border-orange-300 transition-all duration-200">
+                    {/* Route Header Card */}
+                    <div className="bg-gradient-to-r from-orange-50 to-orange-100 p-5 border-b border-orange-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold text-gray-900 mb-1">{schedule.route.name}</h3>
+                          <div className="flex items-center text-gray-700">
+                            <MapPin className="w-4 h-4 mr-2 text-orange-600" />
+                            <span className="text-sm font-medium">
+                              {schedule.route.origin} → {schedule.route.destination}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="text-right ml-4">
+                          <div className="text-3xl font-bold text-orange-600">{formatTime(schedule.time)}</div>
+                          <div className="text-sm text-gray-600 flex items-center justify-end">
+                            <Clock className="w-4 h-4 mr-1" />
+                            {schedule.route.duration} min trip
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
-                    {departures.length === 0 ? (
-                      <div className="bg-gray-50 rounded p-3">
-                        <p className="text-gray-600 text-sm">No departures available for this date</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {departures.map((departure) => (
-                          <button
-                            key={departure.id}
-                            onClick={() => {
-                              setSelectedSchedule(schedule);
-                              setSelectedDeparture(departure);
-                            }}
-                            className={`w-full p-3 rounded-lg border-2 transition-all ${
-                              selectedDeparture?.id === departure.id
-                                ? 'border-blue-500 bg-blue-50'
-                                : 'border-gray-200 hover:border-gray-300'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="text-left">
-                                <p className="font-medium">{new Date(departure.date).toLocaleDateString()}</p>
-                                <p className="text-sm text-gray-600">{formatTime(schedule.time)} departure</p>
+                    {/* Departure Options */}
+                    <div className="p-5">
+                      {departures.length === 0 ? (
+                        <div className="bg-gray-50 rounded-lg p-4 text-center">
+                          <AlertCircle className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-gray-600">No departures available for this date</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {departures.map((departure) => (
+                            <button
+                              key={departure.id}
+                              onClick={() => {
+                                setSelectedSchedule(schedule);
+                                setSelectedDeparture(departure);
+                              }}
+                              className={`w-full p-4 rounded-xl border-2 transition-all duration-200 group ${
+                                selectedDeparture?.id === departure.id
+                                  ? 'border-orange-500 bg-orange-50 shadow-md ring-2 ring-orange-200'
+                                  : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25 hover:shadow-sm'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="text-left flex-1">
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <div className={`p-2 rounded-full ${
+                                      selectedDeparture?.id === departure.id ? 'bg-orange-200' : 'bg-gray-100 group-hover:bg-orange-100'
+                                    }`}>
+                                      <Calendar className={`w-4 h-4 ${
+                                        selectedDeparture?.id === departure.id ? 'text-orange-600' : 'text-gray-600 group-hover:text-orange-600'
+                                      }`} />
+                                    </div>
+                                    <div>
+                                      <div className="font-bold text-gray-900 text-lg">
+                                        {new Date(departure.date).toLocaleDateString('en-US', { 
+                                          weekday: 'short', 
+                                          month: 'short', 
+                                          day: 'numeric' 
+                                        })}
+                                      </div>
+                                      <div className="text-sm text-gray-600">
+                                        Departs at {formatTime(schedule.time)}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div className="text-right">
+                                  <div className={`text-2xl font-bold mb-1 ${getAvailabilityColor(departure.availableSeats, departure.capacity)}`}>
+                                    {departure.availableSeats}
+                                  </div>
+                                  <div className="text-sm text-gray-500 font-medium">
+                                    of {departure.capacity} seats
+                                  </div>
+                                  {departure.availableSeats <= 3 && departure.availableSeats > 0 && (
+                                    <div className="text-xs text-red-600 font-bold mt-1 bg-red-50 px-2 py-1 rounded-full">
+                                      Almost Full!
+                                    </div>
+                                  )}
+                                  {departure.availableSeats === departure.capacity && (
+                                    <div className="text-xs text-green-600 font-bold mt-1 bg-green-50 px-2 py-1 rounded-full">
+                                      Plenty Available
+                                    </div>
+                                  )}
+                                </div>
                               </div>
-                              <div className="text-right">
-                                <p className={`font-medium ${getAvailabilityColor(departure.availableSeats, departure.capacity)}`}>
-                                  {departure.availableSeats} seats available
-                                </p>
-                                <p className="text-sm text-gray-500">of {departure.capacity} total</p>
-                              </div>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })}
@@ -259,13 +304,13 @@ export default function TripDetailsStep({ onComplete }: TripDetailsStepProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <Users className="w-5 h-5 text-blue-500" />
+              <Users className="w-5 h-5 text-orange-500" />
               <label className="text-lg font-medium text-gray-700">Number of Passengers</label>
             </div>
             <select
               value={passengers}
               onChange={(e) => setPassengers(parseInt(e.target.value))}
-              className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors"
             >
               {Array.from({ length: Math.min(selectedDeparture.availableSeats, 8) }, (_, i) => i + 1).map((num) => (
                 <option key={num} value={num}>
@@ -277,13 +322,13 @@ export default function TripDetailsStep({ onComplete }: TripDetailsStepProps) {
 
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
-              <MapPin className="w-5 h-5 text-blue-500" />
+              <MapPin className="w-5 h-5 text-orange-500" />
               <label className="text-lg font-medium text-gray-700">Ticket Type</label>
             </div>
             <select
               value={ticketType}
               onChange={(e) => setTicketType(e.target.value as 'ADULT' | 'CHILD' | 'SENIOR')}
-              className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+              className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-orange-500 focus:outline-none transition-colors"
             >
               <option value="ADULT">Adult - Standard Rate</option>
               <option value="CHILD">Child (2-12) - Discounted</option>
@@ -295,8 +340,8 @@ export default function TripDetailsStep({ onComplete }: TripDetailsStepProps) {
 
       {/* Trip Summary */}
       {selectedSchedule && selectedDeparture && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="font-semibold text-blue-900 mb-4">Trip Summary</h3>
+        <div className="bg-orange-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="font-semibold text-orange-900 mb-4">Trip Summary</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-blue-700">Route:</span>
