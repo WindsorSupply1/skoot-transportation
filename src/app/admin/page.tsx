@@ -381,7 +381,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-6 gap-6">
           <button
             onClick={() => router.push('/admin/bookings')}
             className="bg-white rounded-lg shadow-sm p-6 text-left hover:shadow-md transition-shadow"
@@ -425,6 +425,15 @@ export default function AdminDashboard() {
             <TrendingUp className="h-8 w-8 text-green-600 mb-3" />
             <h3 className="font-semibold text-gray-900">Reports</h3>
             <p className="text-sm text-gray-500">Revenue and analytics</p>
+          </button>
+
+          <button
+            onClick={() => router.push('/admin/pricing')}
+            className="bg-white rounded-lg shadow-sm p-6 text-left hover:shadow-md transition-shadow"
+          >
+            <DollarSign className="h-8 w-8 text-yellow-600 mb-3" />
+            <h3 className="font-semibold text-gray-900">Pricing</h3>
+            <p className="text-sm text-gray-500">Manage ticket prices and fees</p>
           </button>
         </div>
       </div>

@@ -24,15 +24,24 @@ export async function GET(request: NextRequest) {
     const luggageFee = luggageFeeSetting ? parseFloat(luggageFeeSetting.value) : 5;
     const petFee = petFeeSetting ? parseFloat(petFeeSetting.value) : 10;
 
-    // Base prices by customer type
-    const basePrices: Record<string, number> = {
-      LEGACY: 31,
-      STUDENT: 32,
-      MILITARY: 32,
-      REGULAR: 35
-    };
+    // Get base price from database or fallback to defaults
+    let basePrice = 35; // Default fallback
 
-    const basePrice = basePrices[customerType] || basePrices.REGULAR;
+    if (customerType && pricingTiers.length > 0) {
+      const pricingTier = pricingTiers.find(tier => 
+        tier.customerType === customerType && tier.isActive
+      );
+      basePrice = pricingTier ? pricingTier.basePrice : 35;
+    } else {
+      // Fallback prices if no database pricing tiers exist
+      const basePrices: Record<string, number> = {
+        LEGACY: 31,
+        STUDENT: 32,
+        MILITARY: 32,
+        REGULAR: 35
+      };
+      basePrice = basePrices[customerType] || basePrices.REGULAR;
+    }
     const passengerCost = basePrice * passengerCount;
     const luggageCost = extraLuggage * luggageFee;
     const petCost = pets * petFee;
