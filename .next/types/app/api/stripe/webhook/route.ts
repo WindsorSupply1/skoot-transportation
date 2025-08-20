@@ -1,4 +1,4 @@
-// File: C:\Users\priej\skoot-transportation\src\app\api\stripe\webhook\route.ts
+// File: c:\Users\priej\skoot-transportation\src\app\api\stripe\webhook\route.ts
 import * as entry from '../../../../../../src/app/api/stripe/webhook/route.js'
 import type { NextRequest } from 'next/server.js'
 

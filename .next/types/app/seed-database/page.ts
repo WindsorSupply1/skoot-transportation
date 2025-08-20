@@ -1,4 +1,4 @@
-// File: C:\Users\priej\skoot-transportation\src\app\seed-database\page.tsx
+// File: c:\Users\priej\skoot-transportation\src\app\seed-database\page.tsx
 import * as entry from '../../../../src/app/seed-database/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
