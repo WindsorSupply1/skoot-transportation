@@ -22,7 +22,9 @@ import {
   ChevronUp,
   Filter,
   Truck,
-  Tag
+  Tag,
+  CheckCircle,
+  AlertTriangle
 } from 'lucide-react';
 
 interface Schedule {
@@ -90,19 +92,46 @@ interface Vehicle {
   isActive: boolean;
 }
 
+interface NovemberDeparture {
+  id: string;
+  date: string;
+  capacity: number;
+  bookedSeats: number;
+  availableSeats: number;
+  status: string;
+  vehicle: {
+    id: string;
+    name: string;
+    capacity: number;
+    priceMultiplier: number;
+  } | null;
+  schedule: {
+    id: string;
+    time: string;
+    route: {
+      id: string;
+      name: string;
+      origin: string;
+      destination: string;
+    };
+  };
+}
+
 export default function SchedulesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [routes, setRoutes] = useState<Route[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [novemberDepartures, setNovemberDepartures] = useState<NovemberDeparture[]>([]);
+  const [novemberStats, setNovemberStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showRouteModal, setShowRouteModal] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
-  const [activeTab, setActiveTab] = useState<'schedules' | 'routes'>('schedules');
+  const [activeTab, setActiveTab] = useState<'schedules' | 'routes' | 'future-booking'>('schedules');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     routeId: 'all',
@@ -142,25 +171,35 @@ export default function SchedulesPage() {
     setLoading(true);
     setError(null);
     try {
-      const [schedulesRes, routesRes, vehiclesRes] = await Promise.all([
+      const promises = [
         fetch('/api/admin/schedules'),
         fetch('/api/admin/routes'),
         fetch('/api/admin/vehicles')
-      ]);
+      ];
 
-      if (!schedulesRes.ok || !routesRes.ok || !vehiclesRes.ok) {
+      // Also fetch future departures if we're on that tab
+      if (activeTab === 'future-booking') {
+        promises.push(fetch('/api/admin/departures/future'));
+      }
+
+      const responses = await Promise.all(promises);
+      
+      if (!responses[0].ok || !responses[1].ok || !responses[2].ok) {
         throw new Error('Failed to fetch data');
       }
 
-      const [schedulesData, routesData, vehiclesData] = await Promise.all([
-        schedulesRes.json(),
-        routesRes.json(),
-        vehiclesRes.json()
-      ]);
+      const [schedulesData, routesData, vehiclesData, futureData] = await Promise.all(
+        responses.map(res => res.json())
+      );
 
       setSchedules(schedulesData.schedules || []);
       setRoutes(routesData.routes || []);
       setVehicles(vehiclesData.vehicles || []);
+
+      if (futureData) {
+        setNovemberDepartures(futureData.departures || []);
+        setNovemberStats(futureData.stats || null);
+      }
     } catch (error) {
       console.error('Failed to fetch data:', error);
       setError(error instanceof Error ? error.message : 'Failed to load data');
@@ -433,6 +472,20 @@ export default function SchedulesPage() {
             >
               <Route className="h-4 w-4 inline mr-2" />
               Routes
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('future-booking');
+                fetchData();
+              }}
+              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'future-booking'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <Calendar className="h-4 w-4 inline mr-2" />
+              Future Van Booking
             </button>
           </nav>
         </div>
@@ -968,6 +1021,158 @@ export default function SchedulesPage() {
                     <Route className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No routes found</h3>
                     <p>Create your first route to get started.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {activeTab === 'future-booking' && (
+          <>
+            {/* Future Booking Header */}
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Future Van Booking</h1>
+                <p className="text-gray-600">Assign vehicles to future departures efficiently</p>
+              </div>
+              <div className="flex items-center gap-3">
+                {novemberStats && (
+                  <div className="bg-white rounded-lg shadow-sm p-4 text-center">
+                    <div className="text-2xl font-bold text-gray-900">
+                      {Math.round(novemberStats.assignmentComplete)}%
+                    </div>
+                    <div className="text-xs text-gray-500">Complete</div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Stats Dashboard */}
+            {novemberStats && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                  <div className="flex items-center">
+                    <Calendar className="h-8 w-8 text-blue-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Total Departures</p>
+                      <p className="text-2xl font-bold text-gray-900">{novemberStats.totalDepartures}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                  <div className="flex items-center">
+                    <CheckCircle className="h-8 w-8 text-green-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Vans Assigned</p>
+                      <p className="text-2xl font-bold text-gray-900">{novemberStats.departuresWithVehicles}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                  <div className="flex items-center">
+                    <AlertTriangle className="h-8 w-8 text-orange-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Need Assignment</p>
+                      <p className="text-2xl font-bold text-gray-900">{novemberStats.departuresWithoutVehicles}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-sm p-6">
+                  <div className="flex items-center">
+                    <Users className="h-8 w-8 text-purple-600" />
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-500">Available Seats</p>
+                      <p className="text-2xl font-bold text-gray-900">{novemberStats.totalAvailableSeats}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Future Departures List */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">Future Departures Requiring Vehicle Assignment</h2>
+                <p className="text-sm text-gray-600 mt-1">Click on any departure to assign or change the vehicle</p>
+              </div>
+
+              <div className="divide-y divide-gray-200 max-h-96 overflow-y-auto">
+                {novemberDepartures && novemberDepartures.length > 0 ? (
+                  novemberDepartures.map((departure) => (
+                    <div key={departure.id} className="p-4 hover:bg-gray-50">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-6">
+                          <div className="text-sm">
+                            <div className="font-semibold text-gray-900">
+                              {new Date(departure.date).toLocaleDateString('en-US', { 
+                                weekday: 'long', 
+                                month: 'long', 
+                                day: 'numeric',
+                                year: 'numeric'
+                              })}
+                            </div>
+                            <div className="text-gray-600">
+                              {departure.schedule.time} • {departure.schedule.route.name}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {departure.schedule.route.origin} → {departure.schedule.route.destination}
+                            </div>
+                          </div>
+                          
+                          <div className="text-sm">
+                            <div className="font-medium">
+                              {departure.availableSeats} of {departure.capacity} seats
+                            </div>
+                            <div className="text-gray-600">Available</div>
+                          </div>
+
+                          {departure.vehicle ? (
+                            <div className="flex items-center gap-2">
+                              <Tag className="h-4 w-4 text-green-600" />
+                              <span className="text-sm font-medium text-green-600">
+                                {departure.vehicle.name}
+                              </span>
+                              {departure.vehicle.priceMultiplier !== 1 && (
+                                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                                  +{Math.round((departure.vehicle.priceMultiplier - 1) * 100)}%
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 text-orange-600">
+                              <AlertTriangle className="h-4 w-4" />
+                              <span className="text-sm font-medium">No Vehicle Assigned</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                          <select
+                            value={departure.vehicle?.id || ''}
+                            onChange={(e) => assignVehicleToDeparture(departure.id, e.target.value || null)}
+                            className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-orange-500 focus:border-orange-500 min-w-[180px]"
+                          >
+                            <option value="">Select Vehicle...</option>
+                            {vehicles.filter(v => v.isActive).map(vehicle => (
+                              <option key={vehicle.id} value={vehicle.id}>
+                                {vehicle.name} ({vehicle.capacity} seats)
+                                {vehicle.priceMultiplier !== 1 && ` +${Math.round((vehicle.priceMultiplier - 1) * 100)}%`}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-12 text-center text-gray-500">
+                    <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No future departures found</h3>
+                    <p>All upcoming departures have been processed or there are no scheduled departures.</p>
                   </div>
                 )}
               </div>
