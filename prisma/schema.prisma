@@ -167,9 +167,26 @@ model Schedule {
   @@map("schedules")
 }
 
+model Vehicle {
+  id           String   @id @default(cuid())
+  name         String   // e.g., "Van A", "Van B", "15-Seat Premium"
+  capacity     Int      @default(15) // Passenger capacity
+  priceMultiplier Float @default(1.0) // 1.0 = standard, 1.3 = ultra premium (+30%), 1.2 = premium (+20%), 0.9 = economy (-10%)
+  isActive     Boolean  @default(true)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  departures Departure[]
+  
+  @@map("vehicles")
+}
+
 model Departure {
   id           String   @id @default(cuid())
   scheduleId   String
+  vehicleId    String?  // Optional vehicle assignment
   date         DateTime // Specific date for this departure
   capacity     Int      @default(15)
   bookedSeats  Int      @default(0)
@@ -180,6 +197,7 @@ model Departure {
 
   // Relationships
   schedule Schedule  @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  vehicle  Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
   bookings Booking[]
   returnBookings Booking[] @relation("ReturnBooking")
   
