@@ -35,9 +35,6 @@ export async function GET(request: NextRequest) {
           include: {
             route: true
           }
-        },
-        _count: {
-          select: { bookings: true }
         }
       },
       orderBy: [
@@ -47,7 +44,7 @@ export async function GET(request: NextRequest) {
     });
 
     const departuresWithAvailability = departures.map(departure => {
-      const bookedSeats = departure._count.bookings;
+      const bookedSeats = departure.bookedSeats;
       const availableSeats = departure.capacity - bookedSeats;
       const occupancyRate = (bookedSeats / departure.capacity) * 100;
 

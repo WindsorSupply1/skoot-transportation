@@ -84,8 +84,7 @@ export async function POST(request: NextRequest) {
         departure = await prisma.departure.findUnique({
           where: { id: validatedData.departureId },
           include: {
-            schedule: { include: { route: true } },
-            _count: { select: { bookings: true } }
+            schedule: { include: { route: true } }
           }
         });
 
@@ -93,7 +92,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: 'Departure not found' }, { status: 404 });
         }
 
-        availableSeats = departure.capacity - departure._count.bookings;
+        availableSeats = departure.capacity - departure.bookedSeats;
       } catch (dbError) {
         console.error('Database error, using mock departure:', dbError);
         departure = {
