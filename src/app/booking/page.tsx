@@ -14,9 +14,22 @@ interface TripDetails {
   routeId: string;
   scheduleId: string;
   departureId: string;
+  returnDepartureId?: string;
   date: string;
+  returnDate?: string;
   passengers: number;
   ticketType: 'ADULT' | 'CHILD' | 'SENIOR';
+  isRoundTrip: boolean;
+  pickupLocationId: string;
+  dropoffLocationId: string;
+  pricing?: {
+    subtotal: number;
+    discounts: number;
+    fees: number;
+    taxes: number;
+    total: number;
+    breakdown: any;
+  };
 }
 
 interface CustomerDetails {
