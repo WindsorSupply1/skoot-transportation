@@ -20,7 +20,9 @@ import {
   Settings,
   ChevronDown,
   ChevronUp,
-  Filter
+  Filter,
+  Truck,
+  Tag
 } from 'lucide-react';
 
 interface Schedule {
@@ -39,12 +41,17 @@ interface Schedule {
     isActive: boolean;
     duration: number;
   };
-  departures: Array<{
+  upcomingDepartures: Array<{
     id: string;
     date: string;
     capacity: number;
     bookedSeats: number;
     availableSeats: number;
+    vehicle: {
+      id: string;
+      name: string;
+      priceMultiplier: number;
+    } | null;
   }>;
 }
 
@@ -75,11 +82,20 @@ interface NewRoute {
   isActive: boolean;
 }
 
+interface Vehicle {
+  id: string;
+  name: string;
+  capacity: number;
+  priceMultiplier: number;
+  isActive: boolean;
+}
+
 export default function SchedulesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [routes, setRoutes] = useState<Route[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -126,22 +142,25 @@ export default function SchedulesPage() {
     setLoading(true);
     setError(null);
     try {
-      const [schedulesRes, routesRes] = await Promise.all([
+      const [schedulesRes, routesRes, vehiclesRes] = await Promise.all([
         fetch('/api/admin/schedules'),
-        fetch('/api/admin/routes')
+        fetch('/api/admin/routes'),
+        fetch('/api/admin/vehicles')
       ]);
 
-      if (!schedulesRes.ok || !routesRes.ok) {
+      if (!schedulesRes.ok || !routesRes.ok || !vehiclesRes.ok) {
         throw new Error('Failed to fetch data');
       }
 
-      const [schedulesData, routesData] = await Promise.all([
+      const [schedulesData, routesData, vehiclesData] = await Promise.all([
         schedulesRes.json(),
-        routesRes.json()
+        routesRes.json(),
+        vehiclesRes.json()
       ]);
 
       setSchedules(schedulesData.schedules || []);
       setRoutes(routesData.routes || []);
+      setVehicles(vehiclesData.vehicles || []);
     } catch (error) {
       console.error('Failed to fetch data:', error);
       setError(error instanceof Error ? error.message : 'Failed to load data');
@@ -273,6 +292,26 @@ export default function SchedulesPage() {
     } catch (error) {
       console.error('Failed to delete route:', error);
       alert('Failed to delete route');
+    }
+  };
+
+  const assignVehicleToDeparture = async (departureId: string, vehicleId: string | null) => {
+    try {
+      const response = await fetch('/api/admin/departures/assign-vehicle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ departureId, vehicleId })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to assign vehicle');
+      }
+
+      await fetchData();
+    } catch (error) {
+      console.error('Failed to assign vehicle:', error);
+      alert(error instanceof Error ? error.message : 'Failed to assign vehicle');
     }
   };
 
@@ -633,8 +672,8 @@ export default function SchedulesPage() {
                               <div>
                                 <div className="text-gray-500">Recent Demand</div>
                                 <div className="font-medium">
-                                  {schedule.departures?.length > 0 ? (
-                                    `${Math.round(schedule.departures.reduce((sum, d) => sum + (d.bookedSeats / d.capacity), 0) / schedule.departures.length * 100)}% avg occupancy`
+                                  {schedule.upcomingDepartures?.length > 0 ? (
+                                    `${Math.round(schedule.upcomingDepartures.reduce((sum, d) => sum + (d.bookedSeats / d.capacity), 0) / schedule.upcomingDepartures.length * 100)}% avg occupancy`
                                   ) : (
                                     'No recent data'
                                   )}
@@ -644,6 +683,68 @@ export default function SchedulesPage() {
                                 </div>
                               </div>
                             </div>
+                            
+                            {/* Vehicle Assignments for Upcoming Departures */}
+                            {schedule.upcomingDepartures && schedule.upcomingDepartures.length > 0 && (
+                              <div className="mt-4 border-t pt-4">
+                                <div className="text-sm font-medium text-gray-700 mb-3">
+                                  <Truck className="h-4 w-4 inline mr-2" />
+                                  Upcoming Departures & Vehicle Assignments
+                                </div>
+                                <div className="space-y-2">
+                                  {schedule.upcomingDepartures.slice(0, 3).map((departure) => (
+                                    <div key={departure.id} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                                      <div className="flex items-center gap-4">
+                                        <div className="text-sm">
+                                          <div className="font-medium">
+                                            {new Date(departure.date).toLocaleDateString('en-US', { 
+                                              weekday: 'short', 
+                                              month: 'short', 
+                                              day: 'numeric' 
+                                            })}
+                                          </div>
+                                          <div className="text-gray-600">
+                                            {departure.availableSeats} of {departure.capacity} seats
+                                          </div>
+                                        </div>
+                                        {departure.vehicle && (
+                                          <div className="flex items-center gap-2">
+                                            <Tag className="h-4 w-4 text-orange-600" />
+                                            <span className="text-sm font-medium text-orange-600">
+                                              {departure.vehicle.name}
+                                            </span>
+                                            {departure.vehicle.priceMultiplier !== 1 && (
+                                              <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+                                                +{Math.round((departure.vehicle.priceMultiplier - 1) * 100)}%
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div>
+                                        <select
+                                          value={departure.vehicle?.id || ''}
+                                          onChange={(e) => assignVehicleToDeparture(departure.id, e.target.value || null)}
+                                          className="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-orange-500 focus:border-orange-500"
+                                        >
+                                          <option value="">No vehicle</option>
+                                          {vehicles.filter(v => v.isActive).map(vehicle => (
+                                            <option key={vehicle.id} value={vehicle.id}>
+                                              {vehicle.name} ({vehicle.capacity} seats)
+                                            </option>
+                                          ))}
+                                        </select>
+                                      </div>
+                                    </div>
+                                  ))}
+                                  {schedule.upcomingDepartures.length > 3 && (
+                                    <div className="text-xs text-gray-500 text-center py-2">
+                                      Showing 3 of {schedule.upcomingDepartures.length} upcoming departures
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
                           
                           <div className="flex items-center gap-2 ml-6">

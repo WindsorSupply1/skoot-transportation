@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
           route: true,
           departures: {
             include: {
+              vehicle: true,
               _count: {
                 select: { bookings: true }
               }
@@ -55,7 +56,12 @@ export async function GET(request: NextRequest) {
           date: departure.date,
           capacity: departure.capacity,
           bookedSeats: departure._count.bookings,
-          availableSeats: departure.capacity - departure._count.bookings
+          availableSeats: departure.capacity - departure._count.bookings,
+          vehicle: departure.vehicle ? {
+            id: departure.vehicle.id,
+            name: departure.vehicle.name,
+            priceMultiplier: departure.vehicle.priceMultiplier
+          } : null
         })),
         totalUpcomingCapacity: schedule.departures.reduce((sum, dep) => sum + dep.capacity, 0),
         totalBookedSeats: schedule.departures.reduce((sum, dep) => sum + dep._count.bookings, 0)

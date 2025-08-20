@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
               route: true
             }
           },
+          vehicle: true, // Include vehicle information
           _count: {
             select: { bookings: true }
           }
@@ -44,6 +45,11 @@ export async function GET(request: NextRequest) {
         availableSeats: departure.capacity - departure._count.bookings,
         status: departure.status,
         driverNotes: departure.driverNotes,
+        vehicle: departure.vehicle ? {
+          id: departure.vehicle.id,
+          name: departure.vehicle.name,
+          priceMultiplier: departure.vehicle.priceMultiplier
+        } : null,
         schedule: {
           id: departure.schedule.id,
           time: departure.schedule.time,

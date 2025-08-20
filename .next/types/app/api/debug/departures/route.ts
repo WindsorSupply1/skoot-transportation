@@ -1,4 +1,4 @@
-// File: c:\Users\priej\skoot-transportation\src\app\api\debug\departures\route.ts
+// File: C:\Users\priej\skoot-transportation\src\app\api\debug\departures\route.ts
 import * as entry from '../../../../../../src/app/api/debug/departures/route.js'
 import type { NextRequest } from 'next/server.js'
 

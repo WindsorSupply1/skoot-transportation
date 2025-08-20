@@ -1,4 +1,4 @@
-// File: c:\Users\priej\skoot-transportation\src\app\api\stripe\create-payment-intent\route.ts
+// File: C:\Users\priej\skoot-transportation\src\app\api\stripe\create-payment-intent\route.ts
 import * as entry from '../../../../../../src/app/api/stripe/create-payment-intent/route.js'
 import type { NextRequest } from 'next/server.js'
 
