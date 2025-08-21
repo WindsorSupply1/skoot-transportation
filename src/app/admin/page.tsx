@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import AdminNavigation from '@/components/AdminNavigation';
+import CapacityAlerts from '@/components/CapacityAlerts';
 import {
   Calendar,
   Users,
@@ -193,6 +194,9 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50">
       {/* Admin Navigation */}
       <AdminNavigation />
+      
+      {/* Capacity Alerts */}
+      <CapacityAlerts />
       
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
