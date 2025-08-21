@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import AdminNavigation from '@/components/AdminNavigation';
 import { 
   Calendar, 
   ChevronLeft, 
@@ -22,16 +23,23 @@ interface Van {
 }
 
 interface DepartureData {
-  id: string;
   time: string;
-  route: string;
-  origin: string;
-  destination: string;
-  vans: {
-    vanId: string;
-    vanName: string;
-    bookedSeats: number;
-    capacity: number;
+  routes: {
+    route: string;
+    origin: string;
+    destination: string;
+    departures: {
+      id: string;
+      date: string;
+      capacity: number;
+      bookedSeats: number;
+      availableSeats: number;
+      vehicle: {
+        id: string;
+        name: string;
+        capacity: number;
+      } | null;
+    }[];
   }[];
 }
 
@@ -146,6 +154,9 @@ export default function ScheduleManagement() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Admin Navigation */}
+      <AdminNavigation />
+      
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -212,23 +223,12 @@ export default function ScheduleManagement() {
       {/* Schedule Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="space-y-6">
-          {/* Mock data for demonstration */}
-          {[
-            { time: '6:00 AM', routes: [
-              { route: 'Columbia → Charleston', vans: [
-                { id: '1', name: 'Van A', booked: 12, capacity: 15 }
-              ]},
-              { route: 'Charleston → Columbia', vans: [
-                { id: '2', name: 'Van B', booked: 8, capacity: 15 }
-              ]}
-            ]},
-            { time: '9:00 AM', routes: [
-              { route: 'Columbia → Charleston', vans: [
-                { id: '3', name: 'Van A', booked: 15, capacity: 15 },
-                { id: '4', name: 'Van C', booked: 5, capacity: 15 }
-              ]}
-            ]}
-          ].map((timeSlot, idx) => (
+          {departures.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+              <p className="text-gray-500">No departures scheduled for this {viewMode === 'day' ? 'date' : 'week'}.</p>
+            </div>
+          ) : (
+            departures.map((timeSlot, idx) => (
             <div key={idx} className="bg-white rounded-lg shadow-sm overflow-hidden">
               {/* Time Header */}
               <div className="bg-gray-50 px-6 py-3 border-b">
@@ -249,30 +249,30 @@ export default function ScheduleManagement() {
                       </h4>
                     </div>
 
-                    {/* Vans */}
+                    {/* Departures/Vehicles */}
                     <div className="space-y-3">
-                      {route.vans.map((van, vanIdx) => (
-                        <div key={vanIdx} className="flex items-center gap-4">
+                      {route.departures.map((departure, depIdx) => (
+                        <div key={depIdx} className="flex items-center gap-4">
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1">
                               <span className="text-sm font-medium">
-                                🚐 {van.name}
+                                🚐 {departure.vehicle?.name || 'Unassigned Vehicle'}
                               </span>
                               <span className="text-sm text-gray-600">
-                                {van.booked}/{van.capacity} seats
-                                {van.booked >= van.capacity && (
+                                {departure.bookedSeats}/{departure.capacity} seats
+                                {departure.bookedSeats >= departure.capacity && (
                                   <span className="ml-2 text-red-600 font-medium">FULL</span>
                                 )}
                               </span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-4 relative">
                               <div 
-                                className={`h-4 rounded-full ${getCapacityColor(van.booked, van.capacity)}`}
-                                style={{ width: getCapacityWidth(van.booked, van.capacity) }}
+                                className={`h-4 rounded-full ${getCapacityColor(departure.bookedSeats, departure.capacity)}`}
+                                style={{ width: getCapacityWidth(departure.bookedSeats, departure.capacity) }}
                               />
                             </div>
                           </div>
-                          {van.booked >= van.capacity * 0.8 && (
+                          {departure.bookedSeats >= departure.capacity * 0.8 && (
                             <AlertTriangle className="h-5 w-5 text-yellow-500" />
                           )}
                         </div>
@@ -281,7 +281,7 @@ export default function ScheduleManagement() {
                       {/* Add Van Button */}
                       <button
                         onClick={() => {
-                          setSelectedDeparture(`${idx}-${routeIdx}`);
+                          setSelectedDeparture(route.departures[0]?.id || `${idx}-${routeIdx}`);
                           setShowAddVanModal(true);
                         }}
                         className="mt-2 flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-600 rounded-lg hover:bg-orange-100 transition-colors"
@@ -294,7 +294,8 @@ export default function ScheduleManagement() {
                 ))}
               </div>
             </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
@@ -304,39 +305,26 @@ export default function ScheduleManagement() {
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
             <h3 className="text-lg font-semibold mb-4">Add Additional Vehicle</h3>
             <div className="space-y-3">
-              <div className="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Van D</p>
-                    <p className="text-sm text-gray-600">15 seats - Standard pricing</p>
+              {availableVans.map((van) => (
+                <div key={van.id} className="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{van.name}</p>
+                      <p className="text-sm text-gray-600">
+                        {van.capacity} seats - {van.priceMultiplier === 1.0 ? 'Standard' : 
+                          van.priceMultiplier > 1.0 ? `+${Math.round((van.priceMultiplier - 1) * 100)}% Premium` :
+                          `-${Math.round((1 - van.priceMultiplier) * 100)}% Discount`} pricing
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => selectedDeparture && handleAddVan(selectedDeparture, van.id)}
+                      className="text-orange-600 hover:bg-orange-50 px-3 py-1 rounded"
+                    >
+                      Select
+                    </button>
                   </div>
-                  <button className="text-orange-600 hover:bg-orange-50 px-3 py-1 rounded">
-                    Select
-                  </button>
                 </div>
-              </div>
-              <div className="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Premium Bus</p>
-                    <p className="text-sm text-gray-600">25 seats - +20% pricing</p>
-                  </div>
-                  <button className="text-orange-600 hover:bg-orange-50 px-3 py-1 rounded">
-                    Select
-                  </button>
-                </div>
-              </div>
-              <div className="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Economy Van</p>
-                    <p className="text-sm text-gray-600">12 seats - -10% pricing</p>
-                  </div>
-                  <button className="text-orange-600 hover:bg-orange-50 px-3 py-1 rounded">
-                    Select
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
             <div className="mt-6 flex gap-3">
               <button

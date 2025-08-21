@@ -5,7 +5,8 @@
       "Bash(npm run build:*)",
       "Bash(curl:*)",
       "Bash(npm run dev:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
