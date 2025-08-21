@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
             pickupLocation: true
           }
         },
-        liveDepartureStatus: true
+        liveStatus: true
       }
     });
 
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
           const trackingUrl = `/live/${departure.id}`;
 
           // Ensure live departure status exists
-          if (!departure.liveDepartureStatus) {
+          if (!departure.liveStatus) {
             await prisma.liveDepartureStatus.create({
               data: {
                 departureId: departure.id,
@@ -109,9 +109,7 @@ export async function POST(request: NextRequest) {
                   message,
                   trackingUrl,
                   status: smsResult.success ? 'SENT' : 'FAILED',
-                  sentAt: smsResult.success ? new Date() : undefined,
-                  externalId: smsResult.messageId,
-                  errorMessage: smsResult.error
+                  sentAt: smsResult.success ? new Date() : undefined
                 }
               });
 
@@ -212,6 +210,9 @@ export async function GET(request: NextRequest) {
         bookings: {
           where: {
             status: 'PAID'
+          },
+          include: {
+            user: true
           }
         }
       },
@@ -221,7 +222,10 @@ export async function GET(request: NextRequest) {
     });
 
     const eligibleBookings = upcomingDepartures.reduce((total, dep) => {
-      return total + dep.bookings.filter(b => b.user?.phone || b.guestPhone).length;
+      return total + dep.bookings.filter(b => {
+        const phoneNumber = b.user?.phone || b.guestPhone;
+        return !!phoneNumber;
+      }).length;
     }, 0);
 
     return NextResponse.json({

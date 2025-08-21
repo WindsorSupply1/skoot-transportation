@@ -39,7 +39,8 @@ export async function GET(request: NextRequest) {
         },
         orderBy: [
           { isActive: 'desc' },
-          { name: 'asc' }
+          { firstName: 'asc' },
+          { lastName: 'asc' }
         ]
       });
 
@@ -93,11 +94,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   return withAuth(request, async (req, user) => {
     try {
-      const { name, email, phone, licenseNumber, pin, isActive } = await req.json();
+      const { firstName, lastName, email, phone, licenseNumber, pin, isActive } = await req.json();
 
-      if (!name || !licenseNumber || !pin) {
+      if (!firstName || !lastName || !licenseNumber || !pin) {
         return NextResponse.json(
-          { error: 'Name, license number, and PIN are required' },
+          { error: 'First name, last name, license number, and PIN are required' },
           { status: 400 }
         );
       }
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
 
       // Check if PIN is already in use
       const existingPin = await prisma.driver.findFirst({
-        where: { pin }
+        where: { pinCode: pin }
       });
 
       if (existingPin) {
@@ -136,11 +137,12 @@ export async function POST(request: NextRequest) {
 
       const driver = await prisma.driver.create({
         data: {
-          name,
+          firstName,
+          lastName,
           email: email || null,
           phone: phone || null,
           licenseNumber,
-          pin,
+          pinCode: pin,
           isActive: isActive ?? true
         }
       });

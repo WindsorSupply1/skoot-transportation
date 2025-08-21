@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, LiveStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
         create: {
           departureId: vehicleTracking.departureId,
           vehicleTrackingId: vehicleTrackingId,
-          currentStatus: status ? mapVehicleStatusToLiveStatus(status) : 'SCHEDULED',
+          currentStatus: status ? mapVehicleStatusToLiveStatus(status) : LiveStatus.SCHEDULED,
           lastAutomaticUpdate: new Date(),
           isLiveTracked: true,
           progressPercentage: 0,
@@ -268,16 +268,16 @@ function calculateRouteProgress(vehicleTracking: any): number {
   return Math.max(0, Math.round(progress));
 }
 
-function mapVehicleStatusToLiveStatus(vehicleStatus: string): string {
-  const statusMap: { [key: string]: string } = {
-    'SCHEDULED': 'SCHEDULED',
-    'BOARDING': 'BOARDING',
-    'EN_ROUTE': 'EN_ROUTE',
-    'ARRIVED': 'ARRIVED',
-    'COMPLETED': 'COMPLETED',
-    'DELAYED': 'DELAYED',
-    'EMERGENCY': 'DELAYED'
+function mapVehicleStatusToLiveStatus(vehicleStatus: string): LiveStatus {
+  const statusMap: { [key: string]: LiveStatus } = {
+    'SCHEDULED': LiveStatus.SCHEDULED,
+    'BOARDING': LiveStatus.BOARDING,
+    'EN_ROUTE': LiveStatus.EN_ROUTE,
+    'ARRIVED': LiveStatus.ARRIVED,
+    'COMPLETED': LiveStatus.COMPLETED,
+    'DELAYED': LiveStatus.DELAYED,
+    'EMERGENCY': LiveStatus.DELAYED
   };
   
-  return statusMap[vehicleStatus] || 'SCHEDULED';
+  return statusMap[vehicleStatus] || LiveStatus.SCHEDULED;
 }

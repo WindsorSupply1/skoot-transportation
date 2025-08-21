@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, DepartureStatus, LiveStatus } from '@prisma/client';
 import { sendTripStatusSMS } from '@/lib/sms';
 
 const prisma = new PrismaClient();
@@ -271,7 +271,7 @@ export async function POST(request: NextRequest) {
                 phoneNumber,
                 status,
                 tripData,
-                result.liveStatus.trackingUrl
+                result.liveStatus.trackingUrl || undefined
               );
 
               // Update notification status in database
@@ -285,8 +285,7 @@ export async function POST(request: NextRequest) {
                   },
                   data: {
                     status: 'SENT',
-                    sentAt: new Date(),
-                    externalId: smsResult.messageId
+                    sentAt: new Date()
                   }
                 });
               } else {
@@ -298,8 +297,7 @@ export async function POST(request: NextRequest) {
                     status: 'PENDING'
                   },
                   data: {
-                    status: 'FAILED',
-                    errorMessage: smsResult.error
+                    status: 'FAILED'
                   }
                 });
               }
@@ -334,32 +332,32 @@ export async function POST(request: NextRequest) {
 }
 
 // Helper functions
-function mapVehicleStatusToDepartureStatus(vehicleStatus: string): string {
-  const statusMap: { [key: string]: string } = {
-    'SCHEDULED': 'SCHEDULED',
-    'BOARDING': 'BOARDING',
-    'EN_ROUTE': 'IN_TRANSIT',
-    'ARRIVED': 'IN_TRANSIT',
-    'COMPLETED': 'COMPLETED',
-    'DELAYED': 'DELAYED',
-    'EMERGENCY': 'DELAYED'
+function mapVehicleStatusToDepartureStatus(vehicleStatus: string): DepartureStatus {
+  const statusMap: { [key: string]: DepartureStatus } = {
+    'SCHEDULED': DepartureStatus.SCHEDULED,
+    'BOARDING': DepartureStatus.BOARDING,
+    'EN_ROUTE': DepartureStatus.IN_TRANSIT,
+    'ARRIVED': DepartureStatus.IN_TRANSIT,
+    'COMPLETED': DepartureStatus.COMPLETED,
+    'DELAYED': DepartureStatus.DELAYED,
+    'EMERGENCY': DepartureStatus.DELAYED
   };
   
-  return statusMap[vehicleStatus] || 'SCHEDULED';
+  return statusMap[vehicleStatus] || DepartureStatus.SCHEDULED;
 }
 
-function mapVehicleStatusToLiveStatus(vehicleStatus: string): string {
-  const statusMap: { [key: string]: string } = {
-    'SCHEDULED': 'SCHEDULED',
-    'BOARDING': 'BOARDING',
-    'EN_ROUTE': 'EN_ROUTE',
-    'ARRIVED': 'ARRIVED',
-    'COMPLETED': 'COMPLETED',
-    'DELAYED': 'DELAYED',
-    'EMERGENCY': 'DELAYED'
+function mapVehicleStatusToLiveStatus(vehicleStatus: string): LiveStatus {
+  const statusMap: { [key: string]: LiveStatus } = {
+    'SCHEDULED': LiveStatus.SCHEDULED,
+    'BOARDING': LiveStatus.BOARDING,
+    'EN_ROUTE': LiveStatus.EN_ROUTE,
+    'ARRIVED': LiveStatus.ARRIVED,
+    'COMPLETED': LiveStatus.COMPLETED,
+    'DELAYED': LiveStatus.DELAYED,
+    'EMERGENCY': LiveStatus.DELAYED
   };
   
-  return statusMap[vehicleStatus] || 'SCHEDULED';
+  return statusMap[vehicleStatus] || LiveStatus.SCHEDULED;
 }
 
 function getEventType(status: string): string {

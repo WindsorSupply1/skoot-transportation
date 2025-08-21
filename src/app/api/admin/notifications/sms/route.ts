@@ -153,10 +153,7 @@ export async function POST(request: NextRequest) {
                   message: finalMessage,
                   trackingUrl: departureId ? `/live/${departureId}` : undefined,
                   status: smsResult.success ? 'SENT' : 'FAILED',
-                  sentAt: smsResult.success ? new Date() : undefined,
-                  externalId: smsResult.messageId,
-                  errorMessage: smsResult.error,
-                  createdByUserId: user.id
+                  sentAt: smsResult.success ? new Date() : undefined
                 }
               });
             }

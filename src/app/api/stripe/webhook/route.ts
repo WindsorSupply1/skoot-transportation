@@ -219,9 +219,7 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
             message: smsMessage,
             trackingUrl,
             status: smsResult.success ? 'SENT' : 'FAILED',
-            sentAt: smsResult.success ? new Date() : undefined,
-            externalId: smsResult.messageId,
-            errorMessage: smsResult.error
+            sentAt: smsResult.success ? new Date() : undefined
           }
         });
 
@@ -238,8 +236,7 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
               notificationType: 'SMS',
               recipientPhone: phoneNumber,
               message: 'Booking confirmation SMS',
-              status: 'FAILED',
-              errorMessage: smsError instanceof Error ? smsError.message : 'Unknown SMS error'
+              status: 'FAILED'
             }
           });
         } catch (dbError) {

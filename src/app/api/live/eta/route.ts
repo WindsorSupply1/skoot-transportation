@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
           orderBy: { updatedAt: 'desc' },
           take: 1
         },
-        liveDepartureStatus: true,
+        liveStatus: true,
         bookings: {
           include: {
             pickupLocation: true,
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
 
     const route = departure.schedule.route;
     const vehicleTracking = departure.vehicleTracking[0];
-    const liveStatus = departure.liveDepartureStatus;
+    const liveStatus = departure.liveStatus;
 
     // Determine current location
     let currentLocation = {
@@ -90,8 +90,8 @@ export async function GET(request: NextRequest) {
         return booking.pickupLocation && vehicleTracking?.status === 'BOARDING';
       })
       .map(booking => ({
-        lat: parseFloat(booking.pickupLocation?.latitude || '0'),
-        lng: parseFloat(booking.pickupLocation?.longitude || '0'),
+        lat: parseFloat(String(booking.pickupLocation?.latitude || '0')),
+        lng: parseFloat(String(booking.pickupLocation?.longitude || '0')),
         name: booking.pickupLocation?.name || 'Pickup Stop'
       }))
       .filter(stop => stop.lat !== 0 && stop.lng !== 0);
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate additional metrics
     const progress = liveStatus?.progressPercentage || 0;
-    const isDelayed = vehicleTracking?.status === 'DELAYED' || liveStatus?.delayMinutes > 0;
+    const isDelayed = vehicleTracking?.status === 'DELAYED' || (liveStatus?.delayMinutes ?? 0) > 0;
     const delayMinutes = liveStatus?.delayMinutes || 0;
 
     // Format response

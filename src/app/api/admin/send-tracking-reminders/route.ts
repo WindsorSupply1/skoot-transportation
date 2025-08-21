@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
                     route: true
                   }
                 },
-                liveDepartureStatus: true
+                liveStatus: true
               }
             });
 
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
             const departureTime = departure.schedule.time;
 
             // Ensure live departure status exists
-            if (!departure.liveDepartureStatus) {
+            if (!departure.liveStatus) {
               await prisma.liveDepartureStatus.create({
                 data: {
                   departureId: departure.id,
@@ -110,10 +110,7 @@ export async function POST(request: NextRequest) {
                   message,
                   trackingUrl,
                   status: smsResult.success ? 'SENT' : 'FAILED',
-                  sentAt: smsResult.success ? new Date() : undefined,
-                  externalId: smsResult.messageId,
-                  errorMessage: smsResult.error,
-                  createdByUserId: user.id
+                  sentAt: smsResult.success ? new Date() : undefined
                 }
               });
 
@@ -206,7 +203,7 @@ export async function GET(request: NextRequest) {
               user: true
             }
           },
-          liveDepartureStatus: true
+          liveStatus: true
         },
         orderBy: {
           date: 'asc'
@@ -229,7 +226,7 @@ export async function GET(request: NextRequest) {
           totalBookings: departure.bookings.length,
           bookingsWithPhone: bookingsWithPhone.length,
           hoursUntilDeparture,
-          hasLiveStatus: !!departure.liveDepartureStatus,
+          hasLiveStatus: !!departure.liveStatus,
           canSendReminders: bookingsWithPhone.length > 0
         };
       });
