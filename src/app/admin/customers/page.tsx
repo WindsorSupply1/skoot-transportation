@@ -18,7 +18,8 @@ import {
   ChevronDown,
   ChevronUp,
   UserPlus,
-  ArrowLeft
+  ArrowLeft,
+  Download
 } from 'lucide-react';
 
 interface Customer {
