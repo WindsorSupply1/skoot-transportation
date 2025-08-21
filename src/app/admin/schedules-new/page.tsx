@@ -12,7 +12,9 @@ import {
   AlertTriangle,
   Clock,
   Users,
-  Bus
+  Bus,
+  DollarSign,
+  Settings
 } from 'lucide-react';
 
 interface Van {
@@ -53,6 +55,8 @@ export default function ScheduleManagement() {
   const [showAddVanModal, setShowAddVanModal] = useState(false);
   const [selectedDeparture, setSelectedDeparture] = useState<string | null>(null);
   const [availableVans, setAvailableVans] = useState<Van[]>([]);
+  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<{id: string, name: string, currentMultiplier: number} | null>(null);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -112,6 +116,33 @@ export default function ScheduleManagement() {
     } catch (error) {
       console.error('Error adding van:', error);
     }
+  };
+
+  const handlePriceModifierChange = async (vehicleId: string, newMultiplier: number) => {
+    try {
+      const response = await fetch(`/api/admin/vehicles/${vehicleId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ priceMultiplier: newMultiplier })
+      });
+      
+      if (response.ok) {
+        fetchScheduleData(); // Refresh data
+        fetchAvailableVans(); // Refresh van list
+        setShowPricingModal(false);
+        setSelectedVehicle(null);
+      }
+    } catch (error) {
+      console.error('Error updating price modifier:', error);
+    }
+  };
+
+  const getPriceModifierLabel = (multiplier: number) => {
+    if (multiplier === 1.0) return 'Standard';
+    if (multiplier === 1.3) return 'Premium (+30%)';
+    if (multiplier === 0.9) return 'Discount (-10%)';
+    return `${multiplier > 1 ? '+' : ''}${Math.round((multiplier - 1) * 100)}%`;
   };
 
   const getCapacityColor = (booked: number, capacity: number) => {
@@ -345,9 +376,33 @@ export default function ScheduleManagement() {
                         <div key={depIdx} className="flex items-center gap-4">
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm font-medium">
-                                🚐 {departure.vehicle?.name || 'Unassigned Vehicle'}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">
+                                  🚐 {departure.vehicle?.name || 'Unassigned Vehicle'}
+                                </span>
+                                {departure.vehicle && (
+                                  <button
+                                    onClick={() => {
+                                      const vehicle = availableVans.find(v => v.id === departure.vehicle?.id);
+                                      if (vehicle) {
+                                        setSelectedVehicle({
+                                          id: vehicle.id,
+                                          name: vehicle.name,
+                                          currentMultiplier: vehicle.priceMultiplier
+                                        });
+                                        setShowPricingModal(true);
+                                      }
+                                    }}
+                                    className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded transition-colors"
+                                  >
+                                    <DollarSign className="h-3 w-3" />
+                                    {(() => {
+                                      const vehicle = availableVans.find(v => v.id === departure.vehicle?.id);
+                                      return vehicle ? getPriceModifierLabel(vehicle.priceMultiplier) : 'Standard';
+                                    })()}
+                                  </button>
+                                )}
+                              </div>
                               <span className="text-sm text-gray-600">
                                 {departure.bookedSeats}/{departure.capacity} seats
                                 {departure.bookedSeats >= departure.capacity && (
@@ -420,6 +475,79 @@ export default function ScheduleManagement() {
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => setShowAddVanModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Price Modifier Modal */}
+      {showPricingModal && selectedVehicle && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-4">
+              Set Price Modifier for {selectedVehicle.name}
+            </h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Choose the pricing tier for this vehicle. This affects all future bookings.
+            </p>
+            
+            <div className="space-y-3">
+              <button
+                onClick={() => handlePriceModifierChange(selectedVehicle.id, 0.9)}
+                className={`w-full p-4 border rounded-lg text-left hover:bg-gray-50 transition-colors ${
+                  selectedVehicle.currentMultiplier === 0.9 ? 'border-orange-500 bg-orange-50' : 'border-gray-200'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-green-700">Economy Pricing</p>
+                    <p className="text-sm text-gray-600">10% discount from standard rate</p>
+                  </div>
+                  <div className="text-green-700 font-bold">-10%</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handlePriceModifierChange(selectedVehicle.id, 1.0)}
+                className={`w-full p-4 border rounded-lg text-left hover:bg-gray-50 transition-colors ${
+                  selectedVehicle.currentMultiplier === 1.0 ? 'border-orange-500 bg-orange-50' : 'border-gray-200'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-700">Standard Pricing</p>
+                    <p className="text-sm text-gray-600">Regular rate</p>
+                  </div>
+                  <div className="text-gray-700 font-bold">1.0x</div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handlePriceModifierChange(selectedVehicle.id, 1.3)}
+                className={`w-full p-4 border rounded-lg text-left hover:bg-gray-50 transition-colors ${
+                  selectedVehicle.currentMultiplier === 1.3 ? 'border-orange-500 bg-orange-50' : 'border-gray-200'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-blue-700">Premium Pricing</p>
+                    <p className="text-sm text-gray-600">30% premium for enhanced service</p>
+                  </div>
+                  <div className="text-blue-700 font-bold">+30%</div>
+                </div>
+              </button>
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => {
+                  setShowPricingModal(false);
+                  setSelectedVehicle(null);
+                }}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 Cancel
