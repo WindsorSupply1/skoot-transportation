@@ -168,6 +168,44 @@ export default function TripDetailsStep({ onComplete }: TripDetailsStepProps) {
     });
   };
 
+  const getAvailableTimesWithDepartures = (forReturnTrip = false) => {
+    const availableSchedules = getAvailableSchedules(forReturnTrip);
+    const dateToCheck = forReturnTrip ? selectedReturnDate : selectedDate;
+    if (!dateToCheck) return [];
+
+    // Group departures by time to eliminate duplicates
+    const timeGroups: { [time: string]: { schedule: Schedule; departures: Departure[] } } = {};
+
+    availableSchedules.forEach(schedule => {
+      const departures = getAvailableDepartures(schedule, forReturnTrip);
+      if (departures.length > 0) {
+        const time = schedule.time;
+        if (!timeGroups[time]) {
+          timeGroups[time] = { schedule, departures: [] };
+        }
+        // Combine all departures for this time, but prefer the first schedule found
+        timeGroups[time].departures.push(...departures);
+      }
+    });
+
+    // Convert to array and sort by time
+    return Object.entries(timeGroups)
+      .map(([time, { schedule, departures }]) => ({
+        time,
+        schedule,
+        // Sum up available seats from all departures for this time
+        totalAvailableSeats: departures.reduce((sum, dep) => sum + dep.availableSeats, 0),
+        totalCapacity: departures.reduce((sum, dep) => sum + dep.capacity, 0),
+        // Use the first departure for booking (we can enhance this later if needed)
+        departure: departures[0]
+      }))
+      .sort((a, b) => {
+        const [aHours, aMinutes] = a.time.split(':').map(Number);
+        const [bHours, bMinutes] = b.time.split(':').map(Number);
+        return (aHours * 60 + aMinutes) - (bHours * 60 + bMinutes);
+      });
+  };
+
   const getAvailableDepartures = (schedule: Schedule, forReturnTrip = false) => {
     const dateToCheck = forReturnTrip ? selectedReturnDate : selectedDate;
     if (!dateToCheck) return [];
@@ -552,39 +590,35 @@ export default function TripDetailsStep({ onComplete }: TripDetailsStepProps) {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {getAvailableSchedules().map((schedule) => {
-              const departures = getAvailableDepartures(schedule);
-              
-              return departures.map((departure) => (
-                <button
-                  key={departure.id}
-                  onClick={() => {
-                    setSelectedSchedule(schedule);
-                    setSelectedDeparture(departure);
-                  }}
-                  className={`p-4 sm:p-6 rounded-xl border-2 transition-all duration-200 text-center ${
-                    selectedDeparture?.id === departure.id
-                      ? 'border-orange-500 bg-orange-50 shadow-md'
-                      : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
-                  }`}
-                >
-                  <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-                    {formatTime(schedule.time)}
+            {getAvailableTimesWithDepartures().map((timeSlot) => (
+              <button
+                key={`${timeSlot.time}-${timeSlot.departure.id}`}
+                onClick={() => {
+                  setSelectedSchedule(timeSlot.schedule);
+                  setSelectedDeparture(timeSlot.departure);
+                }}
+                className={`p-4 sm:p-6 rounded-xl border-2 transition-all duration-200 text-center ${
+                  selectedDeparture?.id === timeSlot.departure.id
+                    ? 'border-orange-500 bg-orange-50 shadow-md'
+                    : 'border-gray-200 hover:border-orange-300 hover:bg-orange-25'
+                }`}
+              >
+                <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                  {formatTime(timeSlot.time)}
+                </div>
+                <div className={`text-base sm:text-lg font-semibold mb-2 ${getAvailabilityColor(timeSlot.totalAvailableSeats, timeSlot.totalCapacity)}`}>
+                  {timeSlot.totalAvailableSeats} seats left
+                </div>
+                <div className="text-sm text-gray-500">
+                  {timeSlot.totalCapacity} total seats
+                </div>
+                {timeSlot.totalAvailableSeats <= 3 && timeSlot.totalAvailableSeats > 0 && (
+                  <div className="text-xs text-red-600 font-bold mt-2 bg-red-50 px-2 py-1 rounded-full inline-block">
+                    Almost Full!
                   </div>
-                  <div className={`text-base sm:text-lg font-semibold mb-2 ${getAvailabilityColor(departure.availableSeats, departure.capacity)}`}>
-                    {departure.availableSeats} seats left
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {departure.capacity} total seats
-                  </div>
-                  {departure.availableSeats <= 3 && departure.availableSeats > 0 && (
-                    <div className="text-xs text-red-600 font-bold mt-2 bg-red-50 px-2 py-1 rounded-full inline-block">
-                      Almost Full!
-                    </div>
-                  )}
-                </button>
-              ));
-            })}
+                )}
+              </button>
+            ))}
           </div>
           
           {isRoundTrip && selectedDeparture && (
@@ -598,40 +632,36 @@ export default function TripDetailsStep({ onComplete }: TripDetailsStepProps) {
               
               {selectedReturnDate && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {getAvailableSchedules(true).map((schedule) => {
-                    const departures = getAvailableDepartures(schedule, true);
-                    
-                    return departures.map((departure) => (
-                      <button
-                        key={`return-${departure.id}`}
-                        onClick={() => {
-                          setSelectedReturnSchedule(schedule);
-                          setSelectedReturnDeparture(departure);
-                        }}
-                        className={`p-6 rounded-xl border-2 transition-all duration-200 text-center ${
-                          selectedReturnDeparture?.id === departure.id
-                            ? 'border-green-500 bg-green-50 shadow-md'
-                            : 'border-gray-200 hover:border-green-300 hover:bg-green-25'
-                        }`}
-                      >
-                        <div className="text-3xl font-bold text-gray-900 mb-2">
-                          {formatTime(schedule.time)}
+                  {getAvailableTimesWithDepartures(true).map((timeSlot) => (
+                    <button
+                      key={`return-${timeSlot.time}-${timeSlot.departure.id}`}
+                      onClick={() => {
+                        setSelectedReturnSchedule(timeSlot.schedule);
+                        setSelectedReturnDeparture(timeSlot.departure);
+                      }}
+                      className={`p-6 rounded-xl border-2 transition-all duration-200 text-center ${
+                        selectedReturnDeparture?.id === timeSlot.departure.id
+                          ? 'border-green-500 bg-green-50 shadow-md'
+                          : 'border-gray-200 hover:border-green-300 hover:bg-green-25'
+                      }`}
+                    >
+                      <div className="text-3xl font-bold text-gray-900 mb-2">
+                        {formatTime(timeSlot.time)}
+                      </div>
+                      <div className={`text-lg font-semibold mb-2 ${getAvailabilityColor(timeSlot.totalAvailableSeats, timeSlot.totalCapacity)}`}>
+                        {timeSlot.totalAvailableSeats} seats left
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {timeSlot.totalCapacity} total seats
+                      </div>
+                      {timeSlot.totalAvailableSeats <= 3 && timeSlot.totalAvailableSeats > 0 && (
+                        <div className="text-xs text-red-600 font-bold mt-2 bg-red-50 px-2 py-1 rounded-full inline-block">
+                          Almost Full!
                         </div>
-                        <div className={`text-lg font-semibold mb-2 ${getAvailabilityColor(departure.availableSeats, departure.capacity)}`}>
-                          {departure.availableSeats} seats left
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {departure.capacity} total seats
-                        </div>
-                        {departure.availableSeats <= 3 && departure.availableSeats > 0 && (
-                          <div className="text-xs text-red-600 font-bold mt-2 bg-red-50 px-2 py-1 rounded-full inline-block">
-                            Almost Full!
-                          </div>
-                        )}
-                      </button>
-                    ));
-                  })}
-                  {getAvailableSchedules(true).length === 0 && (
+                      )}
+                    </button>
+                  ))}
+                  {getAvailableTimesWithDepartures(true).length === 0 && (
                     <div className="text-center text-gray-500 col-span-full">
                       No return trips available for {new Date(selectedReturnDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                     </div>
