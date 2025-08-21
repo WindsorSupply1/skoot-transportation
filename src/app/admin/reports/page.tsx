@@ -15,7 +15,8 @@ import {
   ChevronDown,
   ChevronUp,
   ArrowLeft,
-  Download
+  Download,
+  RefreshCw
 } from 'lucide-react';
 
 interface RevenueData {
