@@ -6,15 +6,16 @@ import Link from 'next/link';
 
 interface Driver {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email?: string;
   phone?: string;
   licenseNumber: string;
-  pin: string;
+  pinCode: string;
   isActive: boolean;
   rating?: number;
   totalTrips: number;
-  joinedAt: string;
+  createdAt: string;
   vehicleTracking?: {
     id: string;
     status: string;
@@ -29,7 +30,8 @@ interface Driver {
 }
 
 interface DriverFormData {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   licenseNumber: string;
@@ -44,7 +46,8 @@ export default function DriversPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
   const [formData, setFormData] = useState<DriverFormData>({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     licenseNumber: '',
@@ -136,11 +139,12 @@ export default function DriversPage() {
   const handleEdit = (driver: Driver) => {
     setEditingDriver(driver);
     setFormData({
-      name: driver.name,
+      firstName: driver.firstName,
+      lastName: driver.lastName,
       email: driver.email || '',
       phone: driver.phone || '',
       licenseNumber: driver.licenseNumber,
-      pin: driver.pin,
+      pin: driver.pinCode,
       isActive: driver.isActive
     });
     setShowCreateForm(true);
@@ -148,7 +152,8 @@ export default function DriversPage() {
 
   const resetForm = () => {
     setFormData({
-      name: '',
+      firstName: '',
+      lastName: '',
       email: '',
       phone: '',
       licenseNumber: '',
@@ -164,7 +169,7 @@ export default function DriversPage() {
   };
 
   const filteredDrivers = drivers.filter(driver =>
-    driver.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    `${driver.firstName} ${driver.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     driver.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     driver.phone?.includes(searchTerm) ||
     driver.licenseNumber.toLowerCase().includes(searchTerm.toLowerCase())
@@ -307,13 +312,13 @@ export default function DriversPage() {
                         <div className="flex items-center">
                           <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
                             <span className="text-white font-medium">
-                              {driver.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                              {driver.firstName[0]}{driver.lastName[0]}
                             </span>
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{driver.name}</div>
+                            <div className="text-sm font-medium text-gray-900">{driver.firstName} {driver.lastName}</div>
                             <div className="text-sm text-gray-500">
-                              Joined {formatDate(driver.joinedAt)}
+                              Joined {formatDate(driver.createdAt)}
                             </div>
                           </div>
                         </div>
@@ -341,7 +346,7 @@ export default function DriversPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-mono font-medium text-gray-900 bg-gray-100 px-2 py-1 rounded">
-                          {driver.pin}
+                          {driver.pinCode}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -391,17 +396,31 @@ export default function DriversPage() {
             
             <form onSubmit={editingDriver ? handleUpdateDriver : handleCreateDriver}>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      First Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.firstName}
+                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Last Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
                 </div>
 
                 <div>
