@@ -15,7 +15,10 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
-  LogOut
+  LogOut,
+  MessageSquare,
+  Truck,
+  Bell
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -389,7 +392,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-7 gap-6">
+        <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-10 gap-6">
           <button
             onClick={() => router.push('/admin/bookings')}
             className="bg-white rounded-lg shadow-sm p-6 text-left hover:shadow-md transition-shadow"
@@ -451,6 +454,33 @@ export default function AdminDashboard() {
             <div className="text-2xl mb-3">🚐</div>
             <h3 className="font-semibold text-gray-900">Vehicles</h3>
             <p className="text-sm text-gray-500">Manage fleet and van pricing</p>
+          </button>
+
+          <button
+            onClick={() => router.push('/admin/notifications')}
+            className="bg-white rounded-lg shadow-sm p-6 text-left hover:shadow-md transition-shadow"
+          >
+            <MessageSquare className="h-8 w-8 text-blue-600 mb-3" />
+            <h3 className="font-semibold text-gray-900">SMS Notifications</h3>
+            <p className="text-sm text-gray-500">Send alerts and view history</p>
+          </button>
+
+          <button
+            onClick={() => router.push('/admin/drivers')}
+            className="bg-white rounded-lg shadow-sm p-6 text-left hover:shadow-md transition-shadow"
+          >
+            <Truck className="h-8 w-8 text-gray-600 mb-3" />
+            <h3 className="font-semibold text-gray-900">Driver Management</h3>
+            <p className="text-sm text-gray-500">Manage driver accounts and PINs</p>
+          </button>
+
+          <button
+            onClick={() => router.push('/admin/reminders')}
+            className="bg-white rounded-lg shadow-sm p-6 text-left hover:shadow-md transition-shadow"
+          >
+            <Bell className="h-8 w-8 text-yellow-600 mb-3" />
+            <h3 className="font-semibold text-gray-900">Pickup Reminders</h3>
+            <p className="text-sm text-gray-500">Monitor and send automated reminders</p>
           </button>
         </div>
       </div>

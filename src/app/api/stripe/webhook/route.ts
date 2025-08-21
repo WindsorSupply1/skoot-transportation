@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { stripe, verifyWebhookSignature, generateReceiptNumber } from '@/lib/stripe';
 import { sendBookingConfirmationEmail, sendEnhancedPaymentReceiptEmail } from '@/lib/email';
+import { SMS_TEMPLATES, smsService } from '@/lib/sms';
 import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
@@ -131,6 +132,26 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
       });
     }
 
+    // Create or update live departure status for tracking
+    const trackingUrl = `/live/${booking.departureId}`;
+    await prisma.liveDepartureStatus.upsert({
+      where: { departureId: booking.departureId },
+      update: {
+        isLiveTracked: true,
+        trackingUrl,
+        statusMessage: `Scheduled departure from ${booking.departure.schedule.route.origin}`
+      },
+      create: {
+        departureId: booking.departureId,
+        currentStatus: 'SCHEDULED',
+        isLiveTracked: true,
+        trackingUrl,
+        statusMessage: `Scheduled departure from ${booking.departure.schedule.route.origin}`,
+        progressPercentage: 0,
+        delayMinutes: 0
+      }
+    });
+
     // Send confirmation and receipt emails
     const emailPromises = [
       sendEnhancedPaymentReceiptEmail({
@@ -158,10 +179,74 @@ async function handlePaymentSuccess(paymentIntent: Stripe.PaymentIntent) {
 
     // Only send booking confirmation email if user exists (not guest booking)
     if (booking.user) {
-      emailPromises.push(sendBookingConfirmationEmail(booking as any));
+      emailPromises.push(sendBookingConfirmationEmail(booking as any, trackingUrl));
     }
 
     await Promise.all(emailPromises);
+
+    // Send SMS notification with tracking link
+    const phoneNumber = booking.user?.phone || booking.guestPhone;
+    if (phoneNumber) {
+      try {
+        const trackingUrl = `/live/${booking.departureId}`;
+        const departureDate = new Date(booking.departure.date).toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long', 
+          day: 'numeric'
+        });
+        const departureTime = booking.departure.schedule.time;
+        
+        const smsMessage = SMS_TEMPLATES.BOOKING_CONFIRMED(
+          booking.departure.schedule.route.name,
+          departureDate,
+          departureTime,
+          trackingUrl
+        );
+
+        const smsResult = await smsService.sendSMS({
+          to: phoneNumber,
+          message: smsMessage,
+          trackingUrl
+        });
+
+        // Create SMS notification record
+        await prisma.customerNotification.create({
+          data: {
+            bookingId: booking.id,
+            departureId: booking.departureId,
+            notificationType: 'SMS',
+            recipientPhone: phoneNumber,
+            message: smsMessage,
+            trackingUrl,
+            status: smsResult.success ? 'SENT' : 'FAILED',
+            sentAt: smsResult.success ? new Date() : undefined,
+            externalId: smsResult.messageId,
+            errorMessage: smsResult.error
+          }
+        });
+
+        console.log(`SMS sent for booking ${bookingId}: ${smsResult.success ? 'Success' : 'Failed'}`);
+      } catch (smsError) {
+        console.error('Error sending booking confirmation SMS:', smsError);
+        
+        // Still create a failed notification record for audit
+        try {
+          await prisma.customerNotification.create({
+            data: {
+              bookingId: booking.id,
+              departureId: booking.departureId,
+              notificationType: 'SMS',
+              recipientPhone: phoneNumber,
+              message: 'Booking confirmation SMS',
+              status: 'FAILED',
+              errorMessage: smsError instanceof Error ? smsError.message : 'Unknown SMS error'
+            }
+          });
+        } catch (dbError) {
+          console.error('Error creating notification record:', dbError);
+        }
+      }
+    }
 
     // Log successful payment with detailed info
     console.log(`Payment successful: 

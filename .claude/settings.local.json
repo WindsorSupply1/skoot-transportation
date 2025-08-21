@@ -10,7 +10,10 @@
       "Bash(npx prisma studio:*)",
       "Bash(node scripts/update-vehicles.js)",
       "Bash(node:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []

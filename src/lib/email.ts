@@ -59,7 +59,7 @@ interface BookingWithDetails {
   } | null;
 }
 
-export async function sendBookingConfirmationEmail(booking: BookingWithDetails) {
+export async function sendBookingConfirmationEmail(booking: BookingWithDetails, trackingUrl?: string) {
   try {
     const emailTemplate = await prisma.emailTemplate.findFirst({
       where: {
@@ -102,6 +102,7 @@ export async function sendBookingConfirmationEmail(booking: BookingWithDetails) 
       '{{returnInfo}}': booking.returnDeparture 
         ? `Return: ${new Date(booking.returnDeparture.date).toLocaleDateString()} at ${formatTime(booking.returnDeparture.schedule.time)}`
         : 'One-way trip',
+      '{{trackingUrl}}': trackingUrl ? `https://skoot.bike${trackingUrl}` : '',
     };
 
     Object.entries(replacements).forEach(([key, value]) => {
