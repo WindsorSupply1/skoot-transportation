@@ -3,12 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import AdminNavigation from '@/components/AdminNavigation';
 import {
   Search,
   Filter,
-  Edit3,
-  Trash2,
-  Download,
   Eye,
   Calendar,
   Users,
@@ -18,8 +16,7 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  RefreshCw,
-  ArrowLeft,
+  TrendingUp,
   ChevronDown,
   ChevronUp
 } from 'lucide-react';
@@ -137,7 +134,7 @@ export default function BookingsPage() {
       const data = await response.json();
       setBookings(data.bookings || []);
     } catch (error) {
-      console.error('Failed to fetch bookings:', error);
+      // Failed to fetch bookings
       setError(error instanceof Error ? error.message : 'Failed to load bookings');
     } finally {
       setLoading(false);
@@ -152,7 +149,7 @@ export default function BookingsPage() {
         setLocations(data.locations || []);
       }
     } catch (error) {
-      console.error('Failed to fetch locations:', error);
+      // Failed to fetch locations
     }
   };
 
@@ -218,7 +215,7 @@ export default function BookingsPage() {
       fetchBookings();
       setShowModal(false);
     } catch (error) {
-      console.error('Failed to update booking:', error);
+      // Failed to update booking
       alert('Failed to update booking status');
     }
   };
@@ -240,7 +237,7 @@ export default function BookingsPage() {
       fetchBookings();
       setShowModal(false);
     } catch (error) {
-      console.error('Failed to delete booking:', error);
+      // Failed to delete booking
       alert('Failed to delete booking');
     }
   };
@@ -343,36 +340,19 @@ export default function BookingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Admin Navigation */}
+      <AdminNavigation />
+      
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <button
-                onClick={() => router.push('/admin')}
-                className="flex items-center text-gray-500 hover:text-gray-700 mr-4"
-              >
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                Back
-              </button>
               <div className="text-2xl font-bold text-orange-600">SKOOT</div>
               <div className="ml-4 text-gray-500">Booking Management</div>
             </div>
             <div className="flex items-center gap-4">
-              <button
-                onClick={exportBookings}
-                className="flex items-center px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-              >
-                <Download className="h-4 w-4 mr-1" />
-                Export CSV
-              </button>
-              <button
-                onClick={fetchBookings}
-                className="flex items-center px-3 py-2 text-sm bg-orange-600 text-white rounded-lg hover:bg-orange-700"
-              >
-                <RefreshCw className="h-4 w-4 mr-1" />
-                Refresh
-              </button>
+              <span className="text-gray-700">Total: {bookings.length} bookings</span>
             </div>
           </div>
         </div>

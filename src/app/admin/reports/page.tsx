@@ -3,16 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import AdminNavigation from '@/components/AdminNavigation';
 import {
   TrendingUp,
   DollarSign,
   Users,
   Calendar,
   BarChart3,
-  PieChart,
-  Download,
-  RefreshCw,
-  ArrowLeft,
   AlertCircle,
   Filter,
   ChevronDown,

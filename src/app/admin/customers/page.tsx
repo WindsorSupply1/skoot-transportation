@@ -3,28 +3,21 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import AdminNavigation from '@/components/AdminNavigation';
 import {
   Search,
   Filter,
-  Edit3,
-  Trash2,
-  Download,
   Eye,
   Users,
   Calendar,
   DollarSign,
   Phone,
   Mail,
-  MapPin,
-  Clock,
   TrendingUp,
   AlertCircle,
-  RefreshCw,
-  ArrowLeft,
   ChevronDown,
   ChevronUp,
-  UserPlus,
-  History
+  UserPlus
 } from 'lucide-react';
 
 interface Customer {
