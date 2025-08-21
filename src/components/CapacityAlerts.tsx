@@ -8,8 +8,10 @@ import {
   TrendingUp,
   Users,
   Clock,
-  ChevronRight
+  ChevronRight,
+  History
 } from 'lucide-react';
+import NotificationHistory from './NotificationHistory';
 
 interface Alert {
   id: string;
@@ -47,6 +49,36 @@ export default function CapacityAlerts() {
   const [showAlerts, setShowAlerts] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Log notification to localStorage for history
+  const logNotification = (alert: Alert) => {
+    const notification = {
+      id: `${alert.id}-${Date.now()}`,
+      type: alert.type === 'critical' ? 'capacity_critical' as const : 'capacity_warning' as const,
+      title: alert.title,
+      message: alert.message,
+      timestamp: new Date(),
+      level: alert.type === 'critical' ? 'critical' as const : 'warning' as const,
+      read: false,
+      data: {
+        departureId: alert.id.split('-')[1],
+        routeName: alert.route,
+        capacity: alert.capacity,
+        bookedSeats: alert.booked,
+        occupancyRate: Math.round((alert.booked / alert.capacity) * 100)
+      }
+    };
+
+    // Get existing notifications from localStorage
+    const existing = JSON.parse(localStorage.getItem('skoot_notifications') || '[]');
+    
+    // Add new notification to the beginning
+    const updated = [notification, ...existing].slice(0, 100); // Keep only last 100
+    
+    // Save back to localStorage
+    localStorage.setItem('skoot_notifications', JSON.stringify(updated));
+  };
 
   // Check for capacity issues every 30 seconds
   useEffect(() => {
@@ -134,6 +166,11 @@ export default function CapacityAlerts() {
         const updatedAlerts = [...uniqueNewAlerts, ...prev]
           .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
           .slice(0, 20); // Keep only last 20 alerts
+        
+        // Log new alerts to notification history
+        uniqueNewAlerts.forEach(alert => {
+          logNotification(alert);
+        });
         
         // Update unread count
         const unread = updatedAlerts.filter(a => !a.dismissed).length;
@@ -261,6 +298,13 @@ export default function CapacityAlerts() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setShowHistory(true)}
+              className="text-white hover:text-orange-200"
+              title="View Notification History"
+            >
+              <History className="h-4 w-4" />
+            </button>
+            <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="text-white hover:text-orange-200"
             >
@@ -354,6 +398,12 @@ export default function CapacityAlerts() {
           </div>
         )}
       </div>
+      
+      {/* Notification History Modal */}
+      <NotificationHistory 
+        isOpen={showHistory} 
+        onClose={() => setShowHistory(false)} 
+      />
     </div>
   );
 }
