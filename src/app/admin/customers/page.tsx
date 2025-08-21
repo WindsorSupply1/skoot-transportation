@@ -17,7 +17,8 @@ import {
   AlertCircle,
   ChevronDown,
   ChevronUp,
-  UserPlus
+  UserPlus,
+  ArrowLeft
 } from 'lucide-react';
 
 interface Customer {
