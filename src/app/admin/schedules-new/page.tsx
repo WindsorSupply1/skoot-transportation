@@ -46,7 +46,7 @@ interface DepartureData {
 export default function ScheduleManagement() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [viewMode, setViewMode] = useState<'day' | 'week'>('day');
+  const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>('day');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [departures, setDepartures] = useState<DepartureData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -126,20 +126,36 @@ export default function ScheduleManagement() {
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
+    if (viewMode === 'month') {
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long' 
+      });
+    } else if (viewMode === 'week') {
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    } else {
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    }
   };
 
   const navigateDate = (direction: 'prev' | 'next') => {
     const newDate = new Date(selectedDate);
     if (viewMode === 'day') {
       newDate.setDate(newDate.getDate() + (direction === 'next' ? 1 : -1));
-    } else {
+    } else if (viewMode === 'week') {
       newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
+    } else { // month
+      newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
     }
     setSelectedDate(newDate);
   };
@@ -170,23 +186,33 @@ export default function ScheduleManagement() {
               <div className="flex bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setViewMode('day')}
-                  className={`px-4 py-2 rounded ${
+                  className={`px-3 py-2 rounded text-sm ${
                     viewMode === 'day' 
                       ? 'bg-white text-orange-600 shadow-sm' 
                       : 'text-gray-600'
                   }`}
                 >
-                  Day View
+                  Day
                 </button>
                 <button
                   onClick={() => setViewMode('week')}
-                  className={`px-4 py-2 rounded ${
+                  className={`px-3 py-2 rounded text-sm ${
                     viewMode === 'week' 
                       ? 'bg-white text-orange-600 shadow-sm' 
                       : 'text-gray-600'
                   }`}
                 >
-                  Week View
+                  Week
+                </button>
+                <button
+                  onClick={() => setViewMode('month')}
+                  className={`px-3 py-2 rounded text-sm ${
+                    viewMode === 'month' 
+                      ? 'bg-white text-orange-600 shadow-sm' 
+                      : 'text-gray-600'
+                  }`}
+                >
+                  Month
                 </button>
               </div>
             </div>
@@ -207,7 +233,9 @@ export default function ScheduleManagement() {
             <h2 className="text-lg font-medium">
               {viewMode === 'day' 
                 ? formatDate(selectedDate)
-                : `Week of ${formatDate(selectedDate)}`
+                : viewMode === 'week'
+                ? `Week of ${formatDate(selectedDate)}`
+                : formatDate(selectedDate)
               }
             </h2>
             <button
@@ -222,13 +250,75 @@ export default function ScheduleManagement() {
 
       {/* Schedule Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="space-y-6">
-          {departures.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-              <p className="text-gray-500">No departures scheduled for this {viewMode === 'day' ? 'date' : 'week'}.</p>
+        {viewMode === 'month' ? (
+          /* Monthly Calendar View */
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="p-6">
+              <div className="grid grid-cols-7 gap-4 mb-6">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                  <div key={day} className="text-center font-medium text-gray-500 py-2">
+                    {day}
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-4">
+                {(() => {
+                  const year = selectedDate.getFullYear();
+                  const month = selectedDate.getMonth();
+                  const firstDay = new Date(year, month, 1);
+                  const lastDay = new Date(year, month + 1, 0);
+                  const startDate = new Date(firstDay);
+                  startDate.setDate(startDate.getDate() - firstDay.getDay());
+                  
+                  const days = [];
+                  for (let i = 0; i < 42; i++) {
+                    const currentDate = new Date(startDate);
+                    currentDate.setDate(startDate.getDate() + i);
+                    const isCurrentMonth = currentDate.getMonth() === month;
+                    const isToday = currentDate.toDateString() === new Date().toDateString();
+                    
+                    days.push(
+                      <div
+                        key={i}
+                        className={`min-h-[120px] p-2 border rounded-lg ${
+                          isCurrentMonth ? 'bg-white' : 'bg-gray-50'
+                        } ${isToday ? 'ring-2 ring-orange-500' : ''}`}
+                      >
+                        <div className={`text-sm font-medium mb-2 ${
+                          isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
+                        }`}>
+                          {currentDate.getDate()}
+                        </div>
+                        {isCurrentMonth && (
+                          <div className="space-y-1">
+                            <div className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                              🚐 VAN-C1: 8/12
+                            </div>
+                            <div className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
+                              🚐 VAN-C2: 11/12
+                            </div>
+                            <div className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+                              🚐 VAN-C3: 12/12
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+                  return days;
+                })()}
+              </div>
             </div>
-          ) : (
-            departures.map((timeSlot, idx) => (
+          </div>
+        ) : (
+          /* Day/Week View */
+          <div className="space-y-6">
+            {departures.length === 0 ? (
+              <div className="bg-white rounded-lg shadow-sm p-8 text-center">
+                <p className="text-gray-500">No departures scheduled for this {viewMode === 'day' ? 'date' : 'week'}.</p>
+              </div>
+            ) : (
+              departures.map((timeSlot, idx) => (
             <div key={idx} className="bg-white rounded-lg shadow-sm overflow-hidden">
               {/* Time Header */}
               <div className="bg-gray-50 px-6 py-3 border-b">
@@ -295,8 +385,9 @@ export default function ScheduleManagement() {
               </div>
             </div>
             ))
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Add Van Modal */}

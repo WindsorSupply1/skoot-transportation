@@ -28,6 +28,14 @@ export async function GET(request: NextRequest) {
         endDate = new Date(startDate);
         endDate.setDate(startDate.getDate() + 6);
         endDate.setHours(23, 59, 59, 999);
+      } else if (viewMode === 'month') {
+        // Get start of month
+        startDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+        startDate.setHours(0, 0, 0, 0);
+        
+        // Get end of month
+        endDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0);
+        endDate.setHours(23, 59, 59, 999);
       } else {
         // Day view
         startDate = new Date(selectedDate);
