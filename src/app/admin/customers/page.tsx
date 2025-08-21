@@ -19,7 +19,8 @@ import {
   ChevronUp,
   UserPlus,
   ArrowLeft,
-  Download
+  Download,
+  RefreshCw
 } from 'lucide-react';
 
 interface Customer {
