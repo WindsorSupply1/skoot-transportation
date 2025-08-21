@@ -22,7 +22,8 @@ import {
   UserPlus,
   ArrowLeft,
   Download,
-  RefreshCw
+  RefreshCw,
+  History
 } from 'lucide-react';
 
 interface Customer {
