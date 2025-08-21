@@ -8,6 +8,7 @@ import {
   Search,
   Filter,
   Eye,
+  Edit3,
   Users,
   Calendar,
   DollarSign,
