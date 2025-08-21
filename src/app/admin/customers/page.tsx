@@ -23,7 +23,8 @@ import {
   ArrowLeft,
   Download,
   RefreshCw,
-  History
+  History,
+  MapPin
 } from 'lucide-react';
 
 interface Customer {
