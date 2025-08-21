@@ -11,10 +11,8 @@ import {
   Plus, 
   AlertTriangle,
   Clock,
-  Users,
   Bus,
-  DollarSign,
-  Settings
+  DollarSign
 } from 'lucide-react';
 
 interface Van {
@@ -81,7 +79,7 @@ export default function ScheduleManagement() {
         setDepartures(data.departures || []);
       }
     } catch (error) {
-      console.error('Error fetching schedule data:', error);
+      // Error fetching schedule data
     } finally {
       setLoading(false);
     }
@@ -95,7 +93,7 @@ export default function ScheduleManagement() {
         setAvailableVans(data.vehicles || []);
       }
     } catch (error) {
-      console.error('Error fetching vehicles:', error);
+      // Error fetching vehicles
     }
   };
 
@@ -114,7 +112,7 @@ export default function ScheduleManagement() {
         setSelectedDeparture(null);
       }
     } catch (error) {
-      console.error('Error adding van:', error);
+      // Error adding van
     }
   };
 
@@ -134,7 +132,7 @@ export default function ScheduleManagement() {
         setSelectedVehicle(null);
       }
     } catch (error) {
-      console.error('Error updating price modifier:', error);
+      // Error updating price modifier
     }
   };
 
@@ -312,8 +310,14 @@ export default function ScheduleManagement() {
                       <div
                         key={i}
                         className={`min-h-[120px] p-2 border rounded-lg ${
-                          isCurrentMonth ? 'bg-white' : 'bg-gray-50'
-                        } ${isToday ? 'ring-2 ring-orange-500' : ''}`}
+                          isCurrentMonth ? 'bg-white hover:shadow-md cursor-pointer' : 'bg-gray-50'
+                        } ${isToday ? 'ring-2 ring-orange-500' : ''} transition-shadow`}
+                        onClick={() => {
+                          if (isCurrentMonth) {
+                            setViewMode('day');
+                            setSelectedDate(currentDate);
+                          }
+                        }}
                       >
                         <div className={`text-sm font-medium mb-2 ${
                           isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
@@ -321,16 +325,8 @@ export default function ScheduleManagement() {
                           {currentDate.getDate()}
                         </div>
                         {isCurrentMonth && (
-                          <div className="space-y-1">
-                            <div className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                              🚐 VAN-C1: 8/12
-                            </div>
-                            <div className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                              🚐 VAN-C2: 11/12
-                            </div>
-                            <div className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
-                              🚐 VAN-C3: 12/12
-                            </div>
+                          <div className="text-xs text-gray-500 text-center mt-2">
+                            Click for details
                           </div>
                         )}
                       </div>
