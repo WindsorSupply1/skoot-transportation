@@ -139,8 +139,8 @@ export async function POST(request: NextRequest) {
         data: {
           firstName,
           lastName,
-          email: email || null,
-          phone: phone || null,
+          email: email && email.trim() ? email.trim() : null,
+          phone: phone && phone.trim() ? phone.trim() : null,
           licenseNumber,
           pinCode: pin,
           isActive: isActive ?? true

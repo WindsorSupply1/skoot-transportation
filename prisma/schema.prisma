@@ -364,8 +364,8 @@ model RevenueReport {
 
 model Driver {
   id               String            @id @default(cuid())
-  email            String            @unique
-  phone            String            @unique
+  email            String?           @unique
+  phone            String?           @unique
   firstName        String
   lastName         String
   licenseNumber    String?
@@ -373,7 +373,7 @@ model Driver {
   rating           Float             @default(5.0)
   totalTrips       Int               @default(0)
   isActive         Boolean           @default(true)
-  pinCode          String
+  pinCode          String            @unique
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   sentMessages     DriverMessage[]   @relation("SentByDriver")

@@ -146,8 +146,8 @@ export async function PUT(
         data: {
           firstName,
           lastName,
-          email: email || null,
-          phone: phone || null,
+          email: email && email.trim() ? email.trim() : null,
+          phone: phone && phone.trim() ? phone.trim() : null,
           licenseNumber,
           pinCode: pin,
           isActive: isActive ?? true
