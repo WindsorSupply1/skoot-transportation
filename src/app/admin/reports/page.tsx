@@ -13,7 +13,8 @@ import {
   AlertCircle,
   Filter,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ArrowLeft
 } from 'lucide-react';
 
 interface RevenueData {
