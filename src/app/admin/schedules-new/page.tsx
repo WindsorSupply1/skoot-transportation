@@ -285,57 +285,116 @@ export default function ScheduleManagement() {
           /* Monthly Calendar View */
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">
             <div className="p-6">
-              <div className="grid grid-cols-7 gap-4 mb-6">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                  <div key={day} className="text-center font-medium text-gray-500 py-2">
-                    {day}
+              {/* Day Headers */}
+              <div className="grid grid-cols-7 gap-2 mb-4">
+                {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
+                  <div key={day} className="text-center text-sm font-semibold text-gray-700 pb-2 border-b">
+                    {day.slice(0, 3)}
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-7 gap-4">
+              
+              {/* Calendar Grid */}
+              <div className="grid grid-cols-7 gap-2">
                 {(() => {
                   const year = selectedDate.getFullYear();
                   const month = selectedDate.getMonth();
                   const firstDay = new Date(year, month, 1);
                   const lastDay = new Date(year, month + 1, 0);
-                  const startDate = new Date(firstDay);
-                  startDate.setDate(startDate.getDate() - firstDay.getDay());
+                  const startingDayOfWeek = firstDay.getDay();
+                  const daysInMonth = lastDay.getDate();
                   
                   const days = [];
-                  for (let i = 0; i < 42; i++) {
-                    const currentDate = new Date(startDate);
-                    currentDate.setDate(startDate.getDate() + i);
-                    const isCurrentMonth = currentDate.getMonth() === month;
+                  
+                  // Add empty cells for days before month starts
+                  for (let i = 0; i < startingDayOfWeek; i++) {
+                    days.push(
+                      <div key={`empty-${i}`} className="min-h-[100px] p-2"></div>
+                    );
+                  }
+                  
+                  // Add days of the month
+                  for (let day = 1; day <= daysInMonth; day++) {
+                    const currentDate = new Date(year, month, day);
                     const isToday = currentDate.toDateString() === new Date().toDateString();
+                    
+                    // Find departures for this day
+                    const dayDepartures = departures.filter(timeSlot => {
+                      return timeSlot.routes.some(route => 
+                        route.departures.some(dep => {
+                          const depDate = new Date(dep.date);
+                          return depDate.toDateString() === currentDate.toDateString();
+                        })
+                      );
+                    });
+                    
+                    // Calculate total capacity and bookings for the day
+                    let totalCapacity = 0;
+                    let totalBooked = 0;
+                    dayDepartures.forEach(timeSlot => {
+                      timeSlot.routes.forEach(route => {
+                        route.departures.forEach(dep => {
+                          totalCapacity += dep.capacity;
+                          totalBooked += dep.bookedSeats;
+                        });
+                      });
+                    });
+                    
+                    const occupancyRate = totalCapacity > 0 ? (totalBooked / totalCapacity) * 100 : 0;
                     
                     days.push(
                       <div
-                        key={i}
-                        className={`min-h-[120px] p-2 border rounded-lg ${
-                          isCurrentMonth ? 'bg-white' : 'bg-gray-50'
-                        } ${isToday ? 'ring-2 ring-orange-500' : ''}`}
+                        key={day}
+                        className={`min-h-[100px] p-2 border rounded-lg bg-white hover:shadow-md transition-shadow cursor-pointer ${
+                          isToday ? 'ring-2 ring-orange-500' : ''
+                        }`}
+                        onClick={() => {
+                          setViewMode('day');
+                          setSelectedDate(currentDate);
+                        }}
                       >
-                        <div className={`text-sm font-medium mb-2 ${
-                          isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
-                        }`}>
-                          {currentDate.getDate()}
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="text-sm font-semibold text-gray-900">{day}</span>
+                          {totalCapacity > 0 && (
+                            <span className={`text-xs px-2 py-1 rounded ${
+                              occupancyRate >= 90 ? 'bg-red-100 text-red-700' :
+                              occupancyRate >= 70 ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-green-100 text-green-700'
+                            }`}>
+                              {Math.round(occupancyRate)}%
+                            </span>
+                          )}
                         </div>
-                        {isCurrentMonth && (
-                          <div className="space-y-1">
-                            <div className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                              🚐 VAN-C1: 8/12
+                        {totalCapacity > 0 && (
+                          <div className="mt-2">
+                            <div className="text-xs text-gray-600">
+                              {totalBooked}/{totalCapacity} seats
                             </div>
-                            <div className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                              🚐 VAN-C2: 11/12
-                            </div>
-                            <div className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
-                              🚐 VAN-C3: 12/12
+                            <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                              <div 
+                                className={`h-2 rounded-full ${
+                                  occupancyRate >= 90 ? 'bg-red-500' :
+                                  occupancyRate >= 70 ? 'bg-yellow-500' :
+                                  'bg-green-500'
+                                }`}
+                                style={{ width: `${Math.min(occupancyRate, 100)}%` }}
+                              />
                             </div>
                           </div>
                         )}
                       </div>
                     );
                   }
+                  
+                  // Add empty cells to complete the last week
+                  const totalCells = days.length;
+                  const remainingCells = 35 - totalCells; // Ensure at least 5 rows
+                  for (let i = 0; i < remainingCells; i++) {
+                    days.push(
+                      <div key={`empty-end-${i}`} className="min-h-[100px] p-2"></div>
+                    );
+                  }
+                  
                   return days;
                 })()}
               </div>
