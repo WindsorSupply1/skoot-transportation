@@ -422,7 +422,7 @@ export default function HomePage() {
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '60px', alignItems: 'center', zIndex: 2, position: 'relative' }}>
           <div>
             <h1 style={{ fontSize: '3.5em', color: '#333333', marginBottom: '20px', lineHeight: '1.2' }}>
-              Columbia, SC to <span style={{ color: '#FF6600', fontWeight: 'bold' }}>Charlotte Airport</span> Shuttle
+              Columbia, SC to <span style={{ color: '#FF6600', fontWeight: 'bold' }}>Charlotte Douglas International Airport</span> Shuttle
             </h1>
             <p style={{ fontSize: '1.4em', color: '#666666', marginBottom: '30px' }}>
               Reliable shuttle service every even hour - starting at just $31
@@ -760,7 +760,7 @@ export default function HomePage() {
                   "@type": "Offer",
                   "itemOffered": {
                     "@type": "Service",
-                    "name": "Columbia to Charlotte Airport Shuttle",
+                    "name": "Columbia to Charlotte Douglas International Airport Shuttle",
                     "description": "Reliable shuttle service to Charlotte Douglas International Airport"
                   },
                   "price": "31",

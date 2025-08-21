@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         schedule: {
           routeId: 'mock_route_id',
           route: {
-            name: 'Columbia to Charlotte Airport'
+            name: 'Columbia to Charlotte Douglas International Airport'
           }
         },
         _count: { bookings: 0 }
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
           schedule: {
             routeId: 'mock_route_id',
             route: {
-              name: 'Columbia to Charlotte Airport'
+              name: 'Columbia to Charlotte Douglas International Airport'
             }
           },
           _count: { bookings: 0 }
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
           date: new Date(),
           schedule: {
             time: '14:00',
-            route: { name: 'Columbia to Charlotte Airport' }
+            route: { name: 'Columbia to Charlotte Douglas International Airport' }
           }
         },
         returnDeparture: null,
@@ -274,7 +274,7 @@ export async function POST(request: NextRequest) {
             date: new Date(),
             schedule: {
               time: '14:00',
-              route: { name: 'Columbia to Charlotte Airport' }
+              route: { name: 'Columbia to Charlotte Douglas International Airport' }
             }
           },
           returnDeparture: null,

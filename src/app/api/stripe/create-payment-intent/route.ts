@@ -33,11 +33,11 @@ export async function POST(request: NextRequest) {
           date: new Date(),
           schedule: {
             time: '14:00',
-            route: { name: 'Columbia to Charlotte Airport' }
+            route: { name: 'Columbia to Charlotte Douglas International Airport' }
           }
         },
         pickupLocation: { name: 'Downtown Columbia' },
-        dropoffLocation: { name: 'Charlotte Airport' },
+        dropoffLocation: { name: 'Charlotte Douglas International Airport' },
         user: null,
         guestEmail: 'test@example.com',
         passengerCount: 1,

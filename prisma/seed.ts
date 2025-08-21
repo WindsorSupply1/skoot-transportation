@@ -93,7 +93,7 @@ async function main() {
   // Create main route: Columbia, SC → Charlotte Douglas Airport (CLT)
   const mainRoute = await prisma.route.create({
     data: {
-      name: 'Columbia to Charlotte Airport',
+      name: 'Columbia to Charlotte Douglas International Airport',
       origin: 'Columbia, SC',
       destination: 'Charlotte Douglas International Airport (CLT)',
       duration: 130, // 100-130 minutes including Rock Hill stop
@@ -421,7 +421,7 @@ async function main() {
     prisma.fAQ.create({
       data: {
         question: 'How long does the trip take?',
-        answer: 'The journey from Columbia to Charlotte Airport takes approximately 100-130 minutes, including a 10-minute stop in Rock Hill.',
+        answer: 'The journey from Columbia to Charlotte Douglas International Airport takes approximately 100-130 minutes, including a 10-minute stop in Rock Hill.',
         category: 'Travel',
         sortOrder: 2,
       }

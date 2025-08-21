@@ -557,7 +557,7 @@ export default function BookingsPage() {
                     <div className="flex items-start space-x-3">
                       <MapPin className="w-5 h-5 text-blue-600 mt-0.5" />
                       <div>
-                        <div className="font-medium">Charlotte Douglas Airport</div>
+                        <div className="font-medium">Charlotte Douglas International Airport</div>
                         <div className="text-sm text-gray-500">All terminals</div>
                       </div>
                     </div>

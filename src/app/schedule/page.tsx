@@ -97,7 +97,7 @@ export default function SchedulePage() {
               Schedule & Availability
             </h1>
             <p className="text-lg text-gray-600">
-              Columbia to Charlotte Airport • Every even hour • Real-time availability
+              Columbia to Charlotte Douglas International Airport • Every even hour • Real-time availability
             </p>
           </div>
         </div>
