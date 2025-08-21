@@ -9,6 +9,7 @@ import {
   Filter,
   Eye,
   Edit3,
+  Trash2,
   Calendar,
   Users,
   DollarSign,
