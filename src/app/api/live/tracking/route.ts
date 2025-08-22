@@ -3,6 +3,8 @@ import { PrismaClient, LiveStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+export const dynamic = 'force-dynamic';
+
 // Real-time GPS tracking endpoint for driver tablets
 export async function POST(request: NextRequest) {
   try {

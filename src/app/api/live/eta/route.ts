@@ -4,6 +4,8 @@ import { etaService, COMMON_LOCATIONS } from '@/lib/eta';
 
 const prisma = new PrismaClient();
 
+export const dynamic = 'force-dynamic';
+
 // Calculate real-time ETA for a departure
 export async function GET(request: NextRequest) {
   try {

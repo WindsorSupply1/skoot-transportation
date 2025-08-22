@@ -4,7 +4,7 @@
 
 **Live URL**: https://skoot.bike  
 **Repository**: https://github.com/WindsorSupply1/skoot-transportation  
-**Current Commit**: 83494b1 (Fix booking payment flow and improve error handling)  
+**Current Commit**: a187579 (Add hero image to homepage for better visual appeal and SEO)  
 **Application**: Complete shuttle booking system for routes between Columbia, SC and Charleston, SC  
 **Framework**: Next.js 14.2.31 with TypeScript  
 **Hosting**: Vercel with automatic GitHub deployment  
@@ -296,6 +296,38 @@ npx prisma generate
 
 ---
 
+## 🆕 Recent Enhancements (August 2025)
+
+### Automated Pickup Reminders
+- **Cron job system** for automated 30-minute pre-departure notifications
+- **SMS and email alerts** sent to all booked passengers
+- **API endpoint**: `/api/cron/pickup-reminders`
+- **Configuration**: Uses `CRON_SECRET_TOKEN` for security
+
+### Enhanced Notification System
+- **Comprehensive history tracking** of all customer communications
+- **Admin interface** at `/admin/notifications` for managing alerts
+- **Bulk SMS capabilities** for departure announcements
+- **Delivery status tracking** with success/failure logging
+
+### Vehicle-Specific Pricing
+- **Dynamic pricing per vehicle type** (van, bus, luxury)
+- **Admin management interface** for price modifiers
+- **Real-time price calculations** in booking flow
+- **Support for promotional pricing** and discounts
+
+### Improved Schedule Management
+- **Monthly calendar view** for better schedule visualization
+- **Capacity monitoring** with color-coded indicators
+- **Vehicle assignment** directly from schedule interface
+- **Bulk departure generation** for recurring schedules
+
+### Booking UX Improvements
+- **Progressive booking interface** with step-by-step flow
+- **Mobile-optimized design** for on-the-go bookings
+- **Visual hierarchy improvements** for better user guidance
+- **Real-time availability** updates during selection
+
 ## 🛠️ Development Issues Resolved
 
 ### Major Fixes Implemented
@@ -324,6 +356,19 @@ npx prisma generate
 - **Issue**: Schema mismatches in seeding scripts
 - **Resolution**: Fixed missing fields (dayOfWeek, removed invalid customer types)
 - **Commits**: 0851006, 09dbacc
+
+#### 6. Dynamic Server Usage Errors (August 22, 2025)
+- **Issue**: API routes using `request.url` causing build errors
+- **Resolution**: Added `export const dynamic = 'force-dynamic'` to affected routes
+- **Files Fixed**: 
+  - `/api/driver/departures/route.ts`
+  - `/api/live/tracking/route.ts`
+  - `/api/live/eta/route.ts`
+
+#### 7. Missing Icon Imports
+- **Issue**: Multiple TypeScript errors for missing Lucide React icon imports
+- **Resolution**: Added proper imports for all icons (Edit3, Trash2, History, MapPin, etc.)
+- **Commits**: Multiple commits (9e6e194 through 6e66db2)
 
 ---
 
@@ -645,6 +690,12 @@ fetch('/api/admin/seed-sample-data', {method: 'POST'})
 - **Data seeding** and sample content
 - **Error handling** and user feedback
 - **Production deployment** on Vercel
+- **Automated pickup reminders** - 30-minute SMS/email notifications before departure
+- **Notification history system** - Complete tracking of all customer communications
+- **Vehicle-specific pricing** - Different rates per vehicle type
+- **Enhanced schedule management** - Monthly calendar view, capacity monitoring
+- **Improved booking UX** - Progressive interface with mobile optimization
+- **Hero image** - Enhanced homepage visual appeal and SEO
 
 ### 🔄 Immediate Tasks for New Developer
 1. **Test the full booking flow** with sample data
@@ -798,7 +849,7 @@ Use Stripe TEST keys for development to avoid processing real payments.
 
 ---
 
-*Last Updated: August 21, 2025*  
-*Document Version: 3.0 - Complete System with Live Transit Implementation*  
+*Last Updated: August 22, 2025*  
+*Document Version: 3.1 - Complete System with Enhanced Features*  
 *Repository: https://github.com/WindsorSupply1/skoot-transportation*  
 *Live Transit System: Fully Implemented and Production Ready*
