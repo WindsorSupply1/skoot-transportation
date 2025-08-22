@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { Phone, Mail } from 'lucide-react';
 // import NavigationHeader from '../../components/layout/NavigationHeader';
 import Link from 'next/link';
+import Head from 'next/head';
 
 export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -416,6 +417,70 @@ export default function HomePage() {
       <div className="promo-banner">
         🎉 First 100 Customers Lock in $31 Rate FOREVER! After that: Regular $35, Student/Military $32 🎉
       </div>
+
+      {/* Hero Image Section */}
+      <section style={{ 
+        position: 'relative', 
+        width: '100%', 
+        height: '500px',
+        backgroundImage: 'url("/images/ride-with-skoot.jpg")',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: '60px'
+      }}>
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <div style={{ textAlign: 'center', color: 'white', padding: '20px' }}>
+            <h2 style={{ 
+              fontSize: '4em', 
+              fontWeight: 'bold', 
+              marginBottom: '20px',
+              textShadow: '2px 2px 4px rgba(0,0,0,0.7)'
+            }}>
+              RIDE WITH SKOOT
+            </h2>
+            <p style={{ 
+              fontSize: '1.5em', 
+              marginBottom: '30px',
+              textShadow: '1px 1px 2px rgba(0,0,0,0.7)'
+            }}>
+              Your reliable shuttle service to Charlotte Douglas International Airport
+            </p>
+            <Link 
+              href="/booking" 
+              style={{ 
+                display: 'inline-block',
+                background: 'linear-gradient(135deg, #FF6600 0%, #E55A00 100%)', 
+                color: 'white', 
+                padding: '18px 40px', 
+                borderRadius: '30px', 
+                fontSize: '1.2em', 
+                fontWeight: 'bold', 
+                textDecoration: 'none',
+                boxShadow: '0 4px 15px rgba(255, 102, 0, 0.4)',
+                transition: 'transform 0.3s ease'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+              onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              Book Your Ride Now
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* Hero Section */}
       <section className="hero" id="home">

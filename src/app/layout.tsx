@@ -30,10 +30,10 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: 'https://skoot.bike/og-image.jpg', // Add this image later
+        url: 'https://skoot.bike/images/ride-with-skoot.jpg',
         width: 1200,
         height: 630,
-        alt: 'Skoot Shuttle - Columbia to Charlotte Airport',
+        alt: 'Ride with SKOOT - Professional shuttle service with happy passengers',
       },
     ],
   },
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Skoot Shuttle – Columbia SC to Charlotte Airport',
     description: 'Reliable hourly shuttle service starting at $31. Professional drivers, clean vehicles, on-time service.',
-    images: ['https://skoot.bike/og-image.jpg'],
+    images: ['https://skoot.bike/images/ride-with-skoot.jpg'],
   },
   robots: {
     index: true,
