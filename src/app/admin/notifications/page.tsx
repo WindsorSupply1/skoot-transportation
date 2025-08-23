@@ -34,6 +34,7 @@ interface Notification {
 interface Departure {
   id: string;
   date: string;
+  bookedSeats: number;
   schedule: {
     time: string;
     route: {
@@ -43,7 +44,6 @@ interface Departure {
       destination: string;
     };
   };
-  bookings: any[];
 }
 
 const SMS_TEMPLATES = {
@@ -250,7 +250,7 @@ export default function NotificationsPage() {
                   <option value="">Choose a departure...</option>
                   {departures.map((departure) => (
                     <option key={departure.id} value={departure.id}>
-                      {departure.schedule.route.name} - {formatDate(departure.date)} at {departure.schedule.time} ({departure.bookings.length} passengers)
+                      {departure.schedule.route.name} - {formatDate(departure.date)} at {departure.schedule.time} ({departure.bookedSeats} passengers)
                     </option>
                   ))}
                 </select>
